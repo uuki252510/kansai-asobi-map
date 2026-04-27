@@ -225,6 +225,13 @@ export default async function PlaceDetailPage({ params }: Props) {
                   </div>
                 )}
                 {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
+                {r.image_url && (
+                  <img
+                    src={r.image_url}
+                    alt="口コミ画像"
+                    className="mt-2 w-full max-w-xs rounded-xl object-cover border border-border"
+                  />
+                )}
               </div>
             ))}
           </div>

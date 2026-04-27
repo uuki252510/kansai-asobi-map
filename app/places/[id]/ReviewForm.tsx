@@ -1,9 +1,10 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@supabase/supabase-js"
+import { ImagePlus, X } from "lucide-react"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,14 +28,46 @@ interface Props {
 
 export default function ReviewForm({ placeId }: Props) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState("")
   const [userName, setUserName] = useState("")
   const [childAge, setChildAge] = useState("")
   const [visitedAt, setVisitedAt] = useState("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState("")
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setError("画像は5MB以下にしてください")
+      return
+    }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setError("")
+  }
+
+  function removeImage() {
+    setImageFile(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  async function uploadImage(file: File): Promise<string | null> {
+    const ext = file.name.split(".").pop() ?? "jpg"
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from("review-images")
+      .upload(fileName, file, { contentType: file.type })
+    if (uploadError) return null
+    const { data } = supabase.storage.from("review-images").getPublicUrl(fileName)
+    return data.publicUrl
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,6 +78,16 @@ export default function ReviewForm({ placeId }: Props) {
     setLoading(true)
     setError("")
 
+    let imageUrl: string | null = null
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile)
+      if (!imageUrl) {
+        setError("画像のアップロードに失敗しました")
+        setLoading(false)
+        return
+      }
+    }
+
     const { error: err } = await supabase.from("reviews").insert({
       place_id: placeId,
       rating,
@@ -52,6 +95,7 @@ export default function ReviewForm({ placeId }: Props) {
       user_name: userName.trim(),
       child_age: childAge.trim() || null,
       visited_at: visitedAt || null,
+      image_url: imageUrl,
     })
 
     setLoading(false)
@@ -105,7 +149,7 @@ export default function ReviewForm({ placeId }: Props) {
         />
       </div>
 
-      {/* 子どもの年齢 + 訪問時期 — 横並び */}
+      {/* 子どもの年齢 + 訪問時期 */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-medium text-foreground block mb-1">
@@ -151,6 +195,46 @@ export default function ReviewForm({ placeId }: Props) {
           maxLength={300}
           rows={3}
           className="w-full text-sm border border-input rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+        />
+      </div>
+
+      {/* 画像アップロード */}
+      <div>
+        <label className="text-sm font-medium text-foreground block mb-2">
+          写真
+          <span className="ml-1 text-[0.68rem] text-muted-foreground">（任意・5MBまで）</span>
+        </label>
+        {imagePreview ? (
+          <div className="relative w-full max-w-xs">
+            <img
+              src={imagePreview}
+              alt="プレビュー"
+              className="w-full h-40 object-cover rounded-xl border border-border"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white transition-colors"
+            >
+              <X className="size-4 text-foreground" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 border-2 border-dashed border-border rounded-xl px-4 py-4 w-full text-sm text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            <ImagePlus className="size-5" />
+            写真を追加する
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
         />
       </div>
 

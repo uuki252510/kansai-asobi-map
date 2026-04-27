@@ -36,6 +36,7 @@ export interface Review {
   user_name: string
   child_age: string | null
   visited_at: string | null
+  image_url: string | null
   created_at: string
 }
 
