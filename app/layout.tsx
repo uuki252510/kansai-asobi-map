@@ -3,9 +3,28 @@ import "./globals.css"
 import Header from "@/components/Header"
 
 export const metadata: Metadata = {
-  title: "あそびば関西 | 関西の子どもと行ける遊び場を探す",
+  metadataBase: new URL("https://kansai.asobi.nexia-llc.jp"),
+  title: {
+    default: "あそびば関西 | 関西の子連れ遊び場を探す",
+    template: "%s | あそびば関西",
+  },
   description:
     "大阪・兵庫・京都・奈良・滋賀・和歌山の子ども向け遊び場を検索。雨の日OK・無料・屋内など条件で絞り込み。",
+  openGraph: {
+    type: "website",
+    locale: "ja_JP",
+    siteName: "あそびば関西",
+    title: "あそびば関西 | 関西の子連れ遊び場を探す",
+    description:
+      "大阪・兵庫・京都・奈良・滋賀・和歌山の子ども向け遊び場を検索。雨の日OK・無料・屋内など条件で絞り込み。",
+    url: "https://kansai.asobi.nexia-llc.jp",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "あそびば関西 | 関西の子連れ遊び場を探す",
+    description:
+      "大阪・兵庫・京都・奈良・滋賀・和歌山の子ども向け遊び場を検索。雨の日OK・無料・屋内など条件で絞り込み。",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

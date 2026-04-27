@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import type { Metadata } from "next"
 import { getPlaceById, getPlaces } from "@/lib/places"
 import ReviewForm from "./ReviewForm"
 import ShareButtons from "./ShareButtons"
@@ -11,6 +12,35 @@ import { Badge } from "@/components/ui/badge"
 
 interface Props {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const place = await getPlaceById(id)
+  if (!place) return {}
+
+  const title = place.name
+  const description =
+    place.description ??
+    `${place.prefecture}${place.city}にある子連れ向け遊び場。${place.rainy_day_ok ? "雨の日もOK。" : ""}${place.price_type === "free" ? "入場無料。" : ""}`
+  const image = place.image_url ?? undefined
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | あそびば関西`,
+      description,
+      ...(image && { images: [{ url: image, width: 1200, height: 630 }] }),
+      url: `https://kansai.asobi.nexia-llc.jp/places/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | あそびば関西`,
+      description,
+      ...(image && { images: [image] }),
+    },
+  }
 }
 
 const indoorLabels: Record<string, string> = {
