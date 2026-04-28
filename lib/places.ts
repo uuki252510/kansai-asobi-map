@@ -109,6 +109,68 @@ export async function getPopularPlaces(limit = 10): Promise<PlaceWithAvgRating[]
     .slice(0, limit)
 }
 
+const FEATURED_NAMES: Record<string, string[]> = {
+  '大阪府': ['ユニバーサル・スタジオ・ジャパン（USJ）', '海遊館', 'キッズプラザ大阪', '天王寺動物園'],
+  '兵庫県': ['神戸どうぶつ王国', '六甲山アスレチックパーク GREENIA', 'ひょうごこどもの館', '姫路城'],
+  '京都府': ['京都水族館', '東映太秦映画村', '梅小路公園'],
+  '奈良県': ['奈良公園', 'アスレチックの森（奈良）', 'ならファミリー屋上遊園地'],
+  '滋賀県': ['びわ湖こどもの国', '滋賀県立琵琶湖博物館', 'マキノ高原'],
+  '和歌山県': ['アドベンチャーワールド', '串本海中公園', '和歌山城'],
+}
+
+export async function getRecommendedPlaces(): Promise<PlaceWithAvgRating[]> {
+  const result: PlaceWithAvgRating[] = []
+
+  for (const [prefecture, names] of Object.entries(FEATURED_NAMES)) {
+    // 優先名称で検索（全マッチを取得して優先順にソート）
+    const { data } = await supabase
+      .from('places')
+      .select('*, reviews(rating)')
+      .eq('is_published', true)
+      .eq('prefecture', prefecture)
+      .in('name', names)
+      .not('image_url', 'is', null)
+
+    if (data?.length) {
+      const sorted = [...data].sort((a, b) => {
+        const ai = names.indexOf((a as any).name)
+        const bi = names.indexOf((b as any).name)
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+      })
+      const row = sorted[0] as any
+      const reviews: { rating: number }[] = row.reviews ?? []
+      result.push({
+        ...row as Place,
+        avg_rating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null,
+        review_count: reviews.length,
+      })
+      continue
+    }
+
+    // フォールバック: 各県で画像あり・施設充実のスポット
+    const { data: fallback } = await supabase
+      .from('places')
+      .select('*, reviews(rating)')
+      .eq('is_published', true)
+      .eq('prefecture', prefecture)
+      .not('image_url', 'is', null)
+      .eq('has_parking', true)
+      .limit(1)
+
+    if (fallback?.length) {
+      const row = fallback[0] as any
+      const reviews: { rating: number }[] = row.reviews ?? []
+      result.push({
+        ...row as Place,
+        avg_rating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null,
+        review_count: reviews.length,
+      })
+    }
+  }
+
+  return result
+}
+
 export const PREFECTURES = ['大阪府', '兵庫県', '京都府', '奈良県', '滋賀県', '和歌山県'] as const
 
 export const CONDITION_LABELS: Record<string, string> = {

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { getPlaces } from "@/lib/places"
+import { getRecommendedPlaces } from "@/lib/places"
 import PlaceCard from "@/components/PlaceCard"
 import HeroSearch from "@/components/HeroSearch"
 
@@ -57,9 +57,7 @@ const areas = [
 ]
 
 export default async function Home() {
-  const popular = await getPlaces({})
-    .then((places) => places.slice(0, 6))
-    .catch(() => [])
+  const popular = await getRecommendedPlaces().catch(() => [])
 
   return (
     <main className="overflow-hidden">
@@ -132,14 +130,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 新着スポット */}
+      {/* おすすめスポット */}
       <section className="px-4 py-6">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="section-kicker">新しく追加されました</p>
+              <p className="section-kicker">各府県の人気スポット</p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                新着スポット
+                おすすめスポット
               </h2>
             </div>
             <Link

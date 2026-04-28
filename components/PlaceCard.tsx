@@ -63,7 +63,7 @@ export default function PlaceCard({ place, distanceKm }: Props) {
             <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
               <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full border border-white/35" />
               <div className="absolute left-6 top-6 h-14 w-14 rounded-[24px] border border-white/40 bg-white/32 backdrop-blur-sm" />
-              <p className="relative text-4xl">🌳</p>
+              <p className="relative text-[0.72rem] font-medium tracking-widest text-foreground/50">画像準備中</p>
             </div>
           )}
 
