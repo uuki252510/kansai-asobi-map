@@ -1,25 +1,37 @@
 "use client"
 
-import { ChevronDown, Heart, ListFilter, Locate, Search } from "lucide-react"
-import { useMemo, useState } from "react"
+import Link from "next/link"
+import { ChevronDown, Heart, Locate, Search, SearchX, SlidersHorizontal, X } from "lucide-react"
+import { useMemo, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import PlaceCard from "@/components/PlaceCard"
+import FilterSheet from "@/components/FilterSheet"
+import type { Category, Tag } from "@/lib/facility-types"
+import { WALK_DISTANCE_STEPS } from "@/lib/station-data"
+import type { StationOption } from "@/lib/station-scope"
 import { calcDistance, PREFECTURES, type PlaceWithAvgRating } from "@/lib/places"
 import { useFavorites } from "@/lib/useFavorites"
+import {
+  applySpotFilters,
+  countActiveFilters,
+  filtersFromParams,
+  filtersToParams,
+  type SpotFilterState,
+} from "@/lib/spot-filters"
 
 interface Props {
   initialPlaces: PlaceWithAvgRating[]
   initialParams: Record<string, string | undefined>
-}
-
-type BoolFilters = {
-  rainy_day_ok: boolean
-  has_parking: boolean
-  has_nursing_room: boolean
-  has_diaper_space: boolean
+  basePath?: string
+  /** カテゴリー/タグは URL スコープ (サーバー側で適用済み・SEOリンクとして表示) */
+  categories?: Category[]
+  tags?: Tag[]
+  activeCategorySlug?: string | null
+  activeTagSlug?: string | null
+  /** 駅からの絞り込み (サーバー側で適用済み) */
+  stations?: StationOption[]
+  activeStation?: StationOption | null
+  activeWalk?: number
 }
 
 const prefectureShort: Record<string, string> = {
@@ -31,33 +43,14 @@ const prefectureShort: Record<string, string> = {
   和歌山県: "和歌山",
 }
 
-const filterOptions = [
+const quickChips = [
   { key: "rainy_day_ok", label: "雨の日OK" },
+  { key: "priceType:free", label: "無料" },
+  { key: "indoorType:indoor", label: "屋内" },
   { key: "has_parking", label: "駐車場" },
   { key: "has_nursing_room", label: "授乳室" },
   { key: "has_diaper_space", label: "おむつ替え" },
 ] as const
-
-const indoorOptions = [
-  { value: "", label: "すべて" },
-  { value: "indoor", label: "屋内" },
-  { value: "outdoor", label: "屋外" },
-  { value: "both", label: "屋内外" },
-]
-
-const priceOptions = [
-  { value: "", label: "すべて" },
-  { value: "free", label: "無料" },
-  { value: "paid", label: "有料" },
-  { value: "mixed", label: "一部有料" },
-]
-
-const ageOptions = [
-  { value: "", label: "すべての年齢" },
-  { value: "0-2", label: "0〜2歳" },
-  { value: "3-5", label: "3〜5歳" },
-  { value: "6-12", label: "小学生" },
-]
 
 const sortLabels: Record<string, string> = {
   newest: "新着順",
@@ -65,38 +58,90 @@ const sortLabels: Record<string, string> = {
   rating: "口コミ順",
 }
 
-const labelMaps = {
-  indoor: Object.fromEntries(indoorOptions.map((option) => [option.value, option.label])),
-  price: Object.fromEntries(priceOptions.map((option) => [option.value, option.label])),
-  age: Object.fromEntries(ageOptions.map((option) => [option.value, option.label])),
-}
-
-export default function PlacesClient({ initialPlaces, initialParams }: Props) {
+export default function PlacesClient({
+  initialPlaces,
+  initialParams,
+  basePath = "/places",
+  categories = [],
+  tags = [],
+  activeCategorySlug = null,
+  activeTagSlug = null,
+  stations = [],
+  activeStation = null,
+  activeWalk = 800,
+}: Props) {
   const router = useRouter()
 
+  /** スコープ (カテゴリ/タグ/駅) を切り替えるURLを作る。他の条件は維持する */
+  function scopeHref(next: { category?: string | null; tag?: string | null; station?: string | null; walk?: number }) {
+    const params = new URLSearchParams()
+    const category = next.category !== undefined ? next.category : activeCategorySlug
+    const tag = next.tag !== undefined ? next.tag : activeTagSlug
+    const station = next.station !== undefined ? next.station : activeStation?.id ?? null
+    const walk = next.walk ?? activeWalk
+    if (category) params.set("category", category)
+    if (tag) params.set("tag", tag)
+    if (station) {
+      params.set("station", station)
+      params.set("walk", String(walk))
+    }
+    if (initialParams.search) params.set("search", initialParams.search)
+    const query = params.toString()
+    return query ? `${basePath}?${query}` : basePath
+  }
+
+  const activeCategory = categories.find((entry) => entry.slug === activeCategorySlug) ?? null
+  const activeTag = tags.find((entry) => entry.slug === activeTagSlug) ?? null
+
   const [search, setSearch] = useState(initialParams.search ?? "")
-  const [prefecture, setPrefecture] = useState(initialParams.prefecture ?? "")
-  const [indoorType, setIndoorType] = useState(initialParams.indoor_type ?? "")
-  const [priceType, setPriceType] = useState(initialParams.price_type ?? "")
-  const [targetAge, setTargetAge] = useState(initialParams.target_age ?? "")
-  const [boolFilters, setBoolFilters] = useState<BoolFilters>({
-    rainy_day_ok: initialParams.rainy_day_ok === "true",
-    has_parking: initialParams.has_parking === "true",
-    has_nursing_room: initialParams.has_nursing_room === "true",
-    has_diaper_space: initialParams.has_diaper_space === "true",
-  })
+  const [filters, setFilters] = useState<SpotFilterState>(() => filtersFromParams(initialParams))
   const [sort, setSort] = useState(initialParams.sort ?? "newest")
-  const [userLat, setUserLat] = useState<number | null>(
-    initialParams.lat ? Number.parseFloat(initialParams.lat) : null
-  )
-  const [userLng, setUserLng] = useState<number | null>(
-    initialParams.lng ? Number.parseFloat(initialParams.lng) : null
-  )
+  const [userLat, setUserLat] = useState<number | null>(initialParams.lat ? Number.parseFloat(initialParams.lat) : null)
+  const [userLng, setUserLng] = useState<number | null>(initialParams.lng ? Number.parseFloat(initialParams.lng) : null)
   const [geoLoading, setGeoLoading] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [favOnly, setFavOnly] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(36)
   const { isFavorite, count: favCount } = useFavorites()
+
+  const activeCount = countActiveFilters(filters)
+
+  /** URLを共有可能に保つ (サーバー再レンダーは発生させない) */
+  function syncUrl(nextFilters: SpotFilterState, nextSort = sort) {
+    const extra: Record<string, string> = {}
+    if (search.trim()) extra.search = search.trim()
+    if (nextSort && nextSort !== "newest") extra.sort = nextSort
+    if (userLat !== null && userLng !== null) {
+      extra.lat = String(userLat)
+      extra.lng = String(userLng)
+    }
+    const params = filtersToParams(nextFilters, extra)
+    const query = params.toString()
+    window.history.replaceState(null, "", query ? `${basePath}?${query}` : basePath)
+  }
+
+  function applyFilters(next: SpotFilterState) {
+    setFilters(next)
+    setVisibleCount(36)
+    syncUrl(next)
+  }
+
+  function toggleQuickChip(key: (typeof quickChips)[number]["key"]) {
+    const next = { ...filters }
+    if (key === "priceType:free") next.priceType = next.priceType === "free" ? "" : "free"
+    else if (key === "indoorType:indoor") next.indoorType = next.indoorType === "indoor" ? "" : "indoor"
+    else next[key] = !next[key]
+    applyFilters(next)
+  }
+
+  function handleSearchSubmit(event: FormEvent) {
+    event.preventDefault()
+    // 検索はサーバー側 ilike が担当なのでフルナビゲーション
+    const params = filtersToParams(filters, search.trim() ? { search: search.trim() } : {})
+    const query = params.toString()
+    router.push(query ? `${basePath}?${query}` : basePath)
+  }
 
   function handleGeolocate() {
     if (!navigator.geolocation) {
@@ -106,490 +151,295 @@ export default function PlacesClient({ initialPlaces, initialParams }: Props) {
     setGeoLoading(true)
     setGeoError(null)
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        setUserLat(lat)
-        setUserLng(lng)
+      (position) => {
+        setUserLat(position.coords.latitude)
+        setUserLng(position.coords.longitude)
+        setSort("distance")
         setGeoLoading(false)
-        const params = new URLSearchParams()
-        params.set("sort", "distance")
-        params.set("lat", String(lat))
-        params.set("lng", String(lng))
-        router.push(`/places?${params.toString()}`)
       },
       () => {
         setGeoLoading(false)
         setGeoError("位置情報の取得に失敗しました")
       },
-      { timeout: 8000 }
+      { timeout: 8000 },
     )
   }
 
-  function pushFilters(
-    nextState: Partial<{
-      search: string
-      prefecture: string
-      indoorType: string
-      priceType: string
-      targetAge: string
-      boolFilters: BoolFilters
-      sort: string
-    }> = {}
-  ) {
-    const resolved = {
-      search,
-      prefecture,
-      indoorType,
-      priceType,
-      targetAge,
-      boolFilters,
-      sort,
-      ...nextState,
-    }
+  const results = useMemo(() => {
+    let source = applySpotFilters(initialPlaces, filters)
+    if (favOnly) source = source.filter((place) => isFavorite(place.id))
 
-    const params = new URLSearchParams()
-
-    if (resolved.search.trim()) params.set("search", resolved.search.trim())
-    if (resolved.prefecture) params.set("prefecture", resolved.prefecture)
-    if (resolved.indoorType) params.set("indoor_type", resolved.indoorType)
-    if (resolved.priceType) params.set("price_type", resolved.priceType)
-    if (resolved.targetAge) params.set("target_age", resolved.targetAge)
-    if (resolved.boolFilters.rainy_day_ok) params.set("rainy_day_ok", "true")
-    if (resolved.boolFilters.has_parking) params.set("has_parking", "true")
-    if (resolved.boolFilters.has_nursing_room) params.set("has_nursing_room", "true")
-    if (resolved.boolFilters.has_diaper_space) params.set("has_diaper_space", "true")
-    if (resolved.sort) params.set("sort", resolved.sort)
-    if (userLat !== null && userLng !== null) {
-      params.set("lat", String(userLat))
-      params.set("lng", String(userLng))
-    }
-
-    const query = params.toString()
-    router.push(query ? `/places?${query}` : "/places")
-  }
-
-  const sortedPlaces = useMemo(() => {
-    const source = favOnly ? initialPlaces.filter((p) => isFavorite(p.id)) : initialPlaces
     const withDistance = source.map((place) => ({
       ...place,
       distanceKm:
-        userLat !== null &&
-        userLng !== null &&
-        place.latitude !== null &&
-        place.longitude !== null
+        userLat !== null && userLng !== null && place.latitude !== null && place.longitude !== null
           ? calcDistance(userLat, userLng, place.latitude, place.longitude)
           : undefined,
     }))
 
     if (sort === "distance" && userLat !== null && userLng !== null) {
-      return [...withDistance].sort(
-        (left, right) => (left.distanceKm ?? Number.MAX_SAFE_INTEGER) - (right.distanceKm ?? Number.MAX_SAFE_INTEGER)
+      return withDistance.sort(
+        (left, right) => (left.distanceKm ?? Number.MAX_SAFE_INTEGER) - (right.distanceKm ?? Number.MAX_SAFE_INTEGER),
       )
     }
-
     if (sort === "rating") {
-      return [...withDistance].sort(
-        (left, right) => (right.avg_rating ?? 0) - (left.avg_rating ?? 0)
-      )
+      return withDistance.sort((left, right) => (right.avg_rating ?? 0) - (left.avg_rating ?? 0))
     }
-
     return withDistance
-  }, [initialPlaces, sort, userLat, userLng])
+  }, [initialPlaces, filters, favOnly, isFavorite, sort, userLat, userLng])
 
-  const activeFilters = [
-    prefecture ? prefectureShort[prefecture] ?? prefecture : null,
-    indoorType ? labelMaps.indoor[indoorType] : null,
-    priceType ? labelMaps.price[priceType] : null,
-    targetAge ? labelMaps.age[targetAge] : null,
-    ...filterOptions
-      .filter((option) => boolFilters[option.key])
-      .map((option) => option.label),
-  ].filter(Boolean) as string[]
-
-  const activeFilterCount = activeFilters.length
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    pushFilters()
-  }
-
-  function handlePrefectureChange(nextPrefecture: string) {
-    setPrefecture(nextPrefecture)
-    pushFilters({ prefecture: nextPrefecture })
-  }
-
-  function handleSortChange(nextSort: string) {
-    setSort(nextSort)
-    pushFilters({ sort: nextSort })
-  }
-
-  function resetFilters() {
-    const clearedBoolFilters: BoolFilters = {
-      rainy_day_ok: false,
-      has_parking: false,
-      has_nursing_room: false,
-      has_diaper_space: false,
-    }
-
-    setIndoorType("")
-    setPriceType("")
-    setTargetAge("")
-    setBoolFilters(clearedBoolFilters)
-    setPrefecture("")
-    setSort("newest")
-    pushFilters({
-      prefecture: "",
-      indoorType: "",
-      priceType: "",
-      targetAge: "",
-      boolFilters: clearedBoolFilters,
-      sort: "newest",
-    })
+  function isQuickChipActive(key: (typeof quickChips)[number]["key"]) {
+    if (key === "priceType:free") return filters.priceType === "free"
+    if (key === "indoorType:indoor") return filters.indoorType === "indoor"
+    return filters[key]
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="glass-panel rounded-[30px] px-4 py-4 sm:px-5">
-        <form
-          onSubmit={handleSearchSubmit}
-          className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"
-        >
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+    <div className="page-shell py-6 sm:py-10">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
+            {activeStation
+              ? `${activeStation.name}駅から徒歩${Math.ceil(activeWalk / 80)}分以内`
+              : activeCategory
+                ? `関西の${activeCategory.name}`
+                : activeTag
+                  ? activeTag.name
+                  : "関西のおでかけスポット"}
+          </h1>
+          <p className="mt-1 text-sm text-ink-soft">
+            <span className="font-bold text-ink">{results.length}</span> 件 · {sortLabels[sort] ?? "新着順"}
+          </p>
+        </div>
+        {(activeCategory || activeTag) && (
+          <div className="flex flex-wrap gap-2">
+            {activeCategory && (
+              <Link href={scopeHref({ category: null })} className="pill is-active">
+                {activeCategory.name}
+                <X className="size-3.5" aria-hidden />
+                <span className="sr-only">カテゴリー絞り込みを解除</span>
+              </Link>
+            )}
+            {activeTag && (
+              <Link href={scopeHref({ tag: null })} className="pill is-active">
+                {activeTag.name}
+                <X className="size-3.5" aria-hidden />
+                <span className="sr-only">タグ絞り込みを解除</span>
+              </Link>
+            )}
+          </div>
+        )}
+      </header>
+
+      {/* sticky 検索列 */}
+      <div className="sticky top-0 z-40 -mx-4 mt-4 bg-canvas/95 px-4 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8">
+        <form onSubmit={handleSearchSubmit} role="search" className="flex items-center gap-2">
+          <label className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
+            <input
+              type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder='例：「梅田 屋内」「神戸 無料」「授乳室あり」'
-              className="h-[3.25rem] rounded-[18px] border-0 bg-[#f9f7f3] pl-11 pr-4 text-sm shadow-none ring-1 ring-black/4 placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-[var(--brand-clay)]/25"
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="スポット名・市区町村で検索"
+              enterKeyHint="search"
+              aria-label="スポットを検索"
+              className="h-12 w-full rounded-full border border-line bg-surface pl-11 pr-4 text-sm font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-faint focus:border-ink-faint"
             />
           </label>
-          <div className="flex gap-2">
-            <Button
-              type="submit"
-              className="h-[3.25rem] rounded-[18px] bg-[var(--brand-ink)] px-5 text-sm font-semibold text-white shadow-[0_18px_36px_-24px_rgba(24,28,43,0.85)]"
-            >
-              検索する
-            </Button>
-            <Button
-              type="button"
-              onClick={handleGeolocate}
-              disabled={geoLoading}
-              className={`h-[3.25rem] shrink-0 gap-2 rounded-[18px] border bg-white/80 px-4 text-sm font-medium shadow-none transition-colors hover:bg-white ${
-                userLat !== null
-                  ? "border-[var(--brand-clay)]/60 text-[var(--brand-clay)]"
-                  : "border-border/80 text-foreground hover:border-[var(--brand-clay)]/40"
-              }`}
-            >
-              <Locate className={`size-4 ${geoLoading ? "animate-spin" : ""}`} />
-              {geoLoading ? "取得中..." : "近くで探す"}
-            </Button>
-          </div>
-        </form>
-        {geoError && (
-          <p className="mt-2 text-xs text-red-500">{geoError}</p>
-        )}
-
-        {/* ママ向け即時条件チップ — 常時表示・ワンタップで絞り込み */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(
-            [
-              { type: "bool", key: "rainy_day_ok",     icon: "☔", label: "雨の日OK" },
-              { type: "indoor", key: "indoor",          icon: "🏠", label: "屋内" },
-              { type: "price",  key: "free",            icon: "💰", label: "無料" },
-              { type: "bool", key: "has_parking",       icon: "🚗", label: "駐車場" },
-              { type: "bool", key: "has_nursing_room",  icon: "🍼", label: "授乳室" },
-              { type: "bool", key: "has_diaper_space",  icon: "👶", label: "おむつ替え" },
-            ] as const
-          ).map(({ type, key, icon, label }) => {
-            const isActive =
-              type === "bool"    ? boolFilters[key as keyof BoolFilters]
-              : type === "indoor" ? indoorType === key
-              :                    priceType === key
-
-            function handleQuickFilter() {
-              if (type === "bool") {
-                const next = { ...boolFilters, [key]: !boolFilters[key as keyof BoolFilters] }
-                setBoolFilters(next)
-                pushFilters({ boolFilters: next })
-              } else if (type === "indoor") {
-                const next = indoorType === key ? "" : key
-                setIndoorType(next)
-                pushFilters({ indoorType: next })
-              } else {
-                const next = priceType === key ? "" : key
-                setPriceType(next)
-                pushFilters({ priceType: next })
-              }
-            }
-
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={handleQuickFilter}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                    : "border-border/80 bg-white/80 text-foreground hover:border-[var(--brand-clay)]/35"
-                }`}
-              >
-                <span>{icon}</span>
-                {label}
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            onClick={() => handlePrefectureChange("")}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              !prefecture
-                ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                : "border-border/80 bg-white/74 text-foreground hover:border-[var(--brand-clay)]/35"
-            }`}
+            onClick={() => setSheetOpen(true)}
+            className={`pill !min-h-12${activeCount > 0 ? " is-active" : ""}`}
+            aria-expanded={sheetOpen}
           >
-            すべて
+            <SlidersHorizontal className="size-4" aria-hidden />
+            絞り込み
+            {activeCount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[0.68rem] font-black text-white">
+                {activeCount}
+              </span>
+            )}
           </button>
-          {PREFECTURES.map((prefectureName) => (
-            <button
-              key={prefectureName}
-              type="button"
-              onClick={() => handlePrefectureChange(prefectureName)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                prefecture === prefectureName
-                  ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                  : "border-border/80 bg-white/74 text-foreground hover:border-[var(--brand-clay)]/35"
-              }`}
+          <div className="relative hidden sm:block">
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value)
+                syncUrl(filters, event.target.value)
+              }}
+              aria-label="並び順"
+              className="h-12 appearance-none rounded-full border border-line bg-surface px-4 pr-9 text-sm font-bold text-ink outline-none"
             >
-              {prefectureShort[prefectureName]}
+              <option value="newest">新着順</option>
+              {userLat !== null && userLng !== null && <option value="distance">近い順</option>}
+              <option value="rating">口コミ順</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
+          </div>
+        </form>
+
+        {/* クイックチップ */}
+        <div className="scrollbar-hide -mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-0.5">
+          <button
+            type="button"
+            onClick={handleGeolocate}
+            disabled={geoLoading}
+            className={`pill${userLat !== null ? " is-active" : ""}`}
+          >
+            <Locate className={`size-4 ${geoLoading ? "animate-spin" : ""}`} aria-hidden />
+            {geoLoading ? "取得中…" : "近くで探す"}
+          </button>
+          {quickChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              className={`pill${isQuickChipActive(chip.key) ? " is-active" : ""}`}
+              aria-pressed={isQuickChipActive(chip.key)}
+              onClick={() => toggleQuickChip(chip.key)}
+            >
+              {chip.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setFavOnly((current) => !current)}
+            className={`pill${favOnly ? " is-active" : ""}`}
+            aria-pressed={favOnly}
+          >
+            <Heart className={`size-4${favOnly ? " fill-current" : ""}`} aria-hidden />
+            お気に入り{favCount > 0 ? ` (${favCount})` : ""}
+          </button>
+        </div>
+
+        {/* 府県チップ */}
+        <div className="scrollbar-hide -mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-0.5">
+          <button
+            type="button"
+            className={`pill${filters.prefecture === "" ? " is-active" : ""}`}
+            onClick={() => applyFilters({ ...filters, prefecture: "" })}
+          >
+            関西すべて
+          </button>
+          {PREFECTURES.map((prefecture) => (
+            <button
+              key={prefecture}
+              type="button"
+              className={`pill${filters.prefecture === prefecture ? " is-active" : ""}`}
+              onClick={() => applyFilters({ ...filters, prefecture: filters.prefecture === prefecture ? "" : prefecture })}
+            >
+              {prefectureShort[prefecture]}
             </button>
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setFavOnly((v) => !v)}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              favOnly
-                ? "border-red-300 bg-red-50 text-red-500"
-                : "border-border/80 bg-white/74 text-foreground hover:border-red-200"
-            }`}
-          >
-            <Heart className={`size-4 ${favOnly ? "fill-red-500" : ""}`} />
-            お気に入り
-            {favCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-400 px-1 text-[0.68rem] font-semibold text-white">
-                {favCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFilterOpen((open) => !open)}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              filterOpen || activeFilterCount > 0
-                ? "border-[var(--brand-ink)] bg-[#1f2a4414] text-[var(--brand-ink)]"
-                : "border-border/80 bg-white/74 text-foreground hover:border-[var(--brand-clay)]/35"
-            }`}
-            aria-expanded={filterOpen}
-          >
-            <ListFilter className="size-4" />
-            条件を絞り込む
-            {activeFilterCount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand-ink)] px-1 text-[0.68rem] font-semibold text-white">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          <div className="relative ml-auto min-w-[148px]">
+        {/* 駅からさがす (関西は電車移動が主。駅×徒歩分で絞る) */}
+        {stations.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <select
-              value={sort}
-              onChange={(e) => handleSortChange(e.target.value)}
-              className="h-10 w-full appearance-none rounded-full border border-border/80 bg-white/74 px-4 pr-10 text-sm font-medium text-foreground outline-none ring-0 transition-colors hover:border-[var(--brand-clay)]/35 focus:border-[var(--brand-clay)]/35"
+              value={activeStation?.id ?? ""}
+              aria-label="最寄り駅で絞り込む"
+              className="h-10 max-w-48 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink outline-none"
+              onChange={(event) => router.push(scopeHref({ station: event.target.value || null }))}
             >
-              <option value="newest">新着順</option>
-              {userLat !== null && userLng !== null && (
-                <option value="distance">近い順</option>
-              )}
-              <option value="rating">口コミ順</option>
+              <option value="">駅から探す</option>
+              {stations.map((station) => (
+                <option key={station.id} value={station.id}>
+                  {station.name}駅{station.lineName ? `（${station.lineName}）` : ""}
+                </option>
+              ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          </div>
-        </div>
-
-        {filterOpen && (
-          <div className="surface-card mt-4 rounded-[28px] p-4 sm:p-5">
-            <div className="grid gap-4 lg:grid-cols-3">
-              <div className="rounded-[22px] border border-border/70 bg-white/76 p-4">
-                <p className="section-kicker">屋内・屋外</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {indoorOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setIndoorType(option.value)}
-                      className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
-                        indoorType === option.value
-                          ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                          : "border-border/80 bg-background/80 text-foreground hover:border-[var(--brand-clay)]/35"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[22px] border border-border/70 bg-white/76 p-4">
-                <p className="section-kicker">料金</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {priceOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setPriceType(option.value)}
-                      className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
-                        priceType === option.value
-                          ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                          : "border-border/80 bg-background/80 text-foreground hover:border-[var(--brand-clay)]/35"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[22px] border border-border/70 bg-white/76 p-4">
-                <p className="section-kicker">お子さんの年齢</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {ageOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setTargetAge(option.value)}
-                      className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
-                        targetAge === option.value
-                          ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                          : "border-border/80 bg-background/80 text-foreground hover:border-[var(--brand-clay)]/35"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-[22px] border border-border/70 bg-white/76 p-4">
-              <p className="section-kicker">実用条件</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {filterOptions.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() =>
-                      setBoolFilters((current) => ({
-                        ...current,
-                        [option.key]: !current[option.key],
-                      }))
-                    }
-                    className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
-                      boolFilters[option.key]
-                        ? "border-[var(--brand-ink)] bg-[var(--brand-ink)] text-white"
-                        : "border-border/80 bg-background/80 text-foreground hover:border-[var(--brand-clay)]/35"
-                    }`}
+            {activeStation && (
+              <>
+                {WALK_DISTANCE_STEPS.map((meters) => (
+                  <Link
+                    key={meters}
+                    href={scopeHref({ walk: meters })}
+                    aria-current={activeWalk === meters ? "page" : undefined}
+                    className={`pill${activeWalk === meters ? " is-active" : ""}`}
                   >
-                    {option.label}
-                  </button>
+                    徒歩{Math.ceil(meters / 80)}分以内
+                  </Link>
                 ))}
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={resetFilters}
-                className="rounded-full px-4 text-sm"
-              >
-                条件をリセット
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  pushFilters()
-                  setFilterOpen(false)
-                }}
-                className="rounded-full bg-[var(--brand-ink)] px-5 text-sm text-white"
-              >
-                この条件で表示
-              </Button>
-            </div>
+                <Link href={scopeHref({ station: null })} className="pill is-active">
+                  {activeStation.name}駅
+                  <X className="size-3.5" aria-hidden />
+                  <span className="sr-only">駅の絞り込みを解除</span>
+                </Link>
+              </>
+            )}
           </div>
         )}
-      </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        <div className="rounded-full border border-border/80 bg-white/72 px-4 py-2 text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{sortedPlaces.length}</span>{" "}
-          件の遊び場
-          <span className="ml-2 text-xs">{sortLabels[sort] ?? "新着順"}</span>
-        </div>
-
-        {activeFilters.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {activeFilters.map((label) => (
-              <Badge
-                key={label}
-                variant="outline"
-                className="rounded-full border-border/80 bg-white/76 px-3 py-1 text-[0.72rem] font-medium text-foreground"
+        {/* カテゴリーチップ (SEOリンク・サーバー側スコープ) */}
+        {categories.length > 0 && (
+          <div className="scrollbar-hide -mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-0.5">
+            <Link
+              href={scopeHref({ category: null })}
+              className={`pill${!activeCategorySlug ? " is-active" : ""}`}
+            >
+              ジャンル問わず
+            </Link>
+            {categories.slice(0, 24).map((category) => (
+              <Link
+                key={category.slug}
+                href={scopeHref({ category: activeCategorySlug === category.slug ? null : category.slug })}
+                aria-current={activeCategorySlug === category.slug ? "page" : undefined}
+                className={`pill${activeCategorySlug === category.slug ? " is-active" : ""}`}
               >
-                {label}
-              </Badge>
+                {category.name}
+              </Link>
             ))}
           </div>
         )}
+
+        {geoError && (
+          <p role="alert" className="mt-2 text-xs font-bold text-destructive">{geoError}</p>
+        )}
       </div>
 
-      {sortedPlaces.length === 0 ? (
-        <div className="surface-card mt-8 rounded-[32px] px-6 py-16 text-center">
+      {results.length === 0 ? (
+        <div className="card-v2 mt-10 px-6 py-16 text-center">
           <div className="mx-auto flex max-w-md flex-col items-center">
-            <div className="mb-6 text-5xl">🔍</div>
-            <p className="text-lg font-semibold text-foreground">
-              ぴったりの場所が見つかりませんでした
+            <SearchX className="mb-5 size-10 text-ink-faint" aria-hidden />
+            <p className="text-lg font-black text-ink">ぴったりの場所が見つかりませんでした</p>
+            <p className="mt-2 text-sm leading-7 text-ink-soft">
+              条件をひとつ外すと見つかることが多いです。
             </p>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              条件をひとつ外すと見つかることが多いです。<br />
-              まずは都道府県だけで試してみてください。
-            </p>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              className="mt-4 rounded-full px-4"
-              onClick={resetFilters}
+              className="btn-secondary mt-5"
+              onClick={() => {
+                setFavOnly(false)
+                applyFilters(filtersFromParams({}))
+              }}
             >
               条件をすべてリセット
-            </Button>
+            </button>
           </div>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedPlaces.map((place) => (
-            <PlaceCard
-              key={place.id}
-              place={place}
-              distanceKm={place.distanceKm}
-            />
+        <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+          {results.slice(0, visibleCount).map((place) => (
+            <PlaceCard key={place.id} place={place} distanceKm={place.distanceKm} />
           ))}
         </div>
       )}
+
+      {results.length > visibleCount && (
+        <div className="mt-10 flex justify-center">
+          <button type="button" className="btn-secondary px-8" onClick={() => setVisibleCount((count) => count + 36)}>
+            さらに表示（残り {results.length - visibleCount} 件）
+          </button>
+        </div>
+      )}
+
+      <FilterSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        value={filters}
+        onApply={applyFilters}
+        places={favOnly ? initialPlaces.filter((place) => isFavorite(place.id)) : initialPlaces}
+      />
     </div>
   )
 }

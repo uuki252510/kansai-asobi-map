@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@supabase/supabase-js"
-import { ImagePlus, X } from "lucide-react"
+import { CircleCheck, ImagePlus, Star, X } from "lucide-react"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -110,7 +110,7 @@ export default function ReviewForm({ placeId }: Props) {
   if (submitted) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
-        <p className="text-2xl mb-2">🎉</p>
+        <CircleCheck className="mx-auto mb-2 size-9 text-green-600" />
         <p className="text-sm font-medium text-green-700">口コミを投稿しました！次に行くママの参考になります。ありがとうございます。</p>
       </div>
     )
@@ -128,8 +128,8 @@ export default function ReviewForm({ placeId }: Props) {
               type="button"
               onClick={() => setRating(n)}
               className={`text-2xl transition-transform hover:scale-110 ${n <= rating ? "text-yellow-400" : "text-gray-200"}`}
-            >
-              ★
+            aria-label={`${n}点`}>
+              <Star className={`size-7 ${n <= rating ? "fill-yellow-400" : ""}`} />
             </button>
           ))}
         </div>
@@ -209,6 +209,8 @@ export default function ReviewForm({ placeId }: Props) {
             <img
               src={imagePreview}
               alt="プレビュー"
+              width={640}
+              height={480}
               className="w-full h-40 object-cover rounded-xl border border-border"
             />
             <button
@@ -245,7 +247,7 @@ export default function ReviewForm({ placeId }: Props) {
         disabled={loading}
         className="w-full rounded-full bg-primary hover:bg-primary/90"
       >
-        {loading ? "投稿中..." : "口コミを投稿する"}
+        {loading ? "投稿中…" : "口コミを投稿する"}
       </Button>
     </form>
   )
