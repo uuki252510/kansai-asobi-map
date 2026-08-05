@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
+import { LockKeyhole, ShieldCheck } from "lucide-react"
 
 function LoginForm() {
   const router = useRouter()
@@ -34,30 +35,42 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="surface-card rounded-[28px] p-8">
-          <h1 className="text-xl font-bold text-foreground mb-1">管理画面</h1>
-          <p className="text-sm text-muted-foreground mb-6">パスワードを入力してください</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="パスワード"
-              autoFocus
-              className="w-full border border-input rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+    <div className="admin-login-page flex min-h-[calc(100dvh-9rem)] items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="admin-login-note">
+          <ShieldCheck className="size-4" />
+          <span>運営スタッフ専用エリア</span>
+        </div>
+        <section className="admin-login-card card-v2 rounded-[28px] p-7 sm:p-9" aria-labelledby="admin-login-title">
+          <span className="admin-login-icon"><LockKeyhole className="size-5" /></span>
+          <p className="section-kicker mt-5">Staff access</p>
+          <h1 id="admin-login-title" className="mt-2 text-3xl font-black tracking-[-0.045em] text-foreground">管理画面</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">スポット情報を管理するため、パスワードを入力してください。</p>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <label className="block text-sm font-black text-foreground" htmlFor="admin-password">
+              パスワード
+              <input
+                id="admin-password"
+                name="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="パスワードを入力"
+                autoComplete="current-password"
+                className="mt-2 h-12 w-full rounded-xl border border-input bg-white px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </label>
+            {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-destructive" role="alert">{error}</p>}
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full bg-primary text-white font-bold py-3 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="btn-primary w-full disabled:opacity-50"
             >
-              {loading ? "確認中..." : "ログイン"}
+              {loading ? "確認中…" : "ログイン"}
             </button>
           </form>
-        </div>
+          <p className="mt-5 text-center text-[0.65rem] leading-5 text-muted-foreground">認証情報は暗号化されたCookieで確認されます。</p>
+        </section>
       </div>
     </div>
   )

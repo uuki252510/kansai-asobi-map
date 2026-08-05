@@ -36,6 +36,18 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local UI QA artifacts
+/.playwright-mcp/
+/.tmp-ui-refresh-chrome*/
+/.tmp-ui-refresh-edge/
+/.tmp-ui-refresh-*.log
+/.tmp-ui-refresh.patch
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
