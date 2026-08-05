@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,28 +8,26 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
-  --font-mono:
-    "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   --font-heading: var(--font-display);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-caution: var(--caution);
+  --color-caution-soft: var(--caution-soft);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -40,87 +38,97 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.55);
-  --radius-md: calc(var(--radius) * 0.85);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-2xl: calc(var(--radius) * 1.9);
   --radius-3xl: calc(var(--radius) * 2.4);
   --radius-4xl: calc(var(--radius) * 3);
 }
 
 :root {
-  /* 空色 × サニーイエロー — 晴れた日のおでかけパレット */
-  --background: oklch(0.990 0.006 200);          /* 薄い空色ホワイト */
-  --foreground: oklch(0.20 0.025 230);           /* ディープスカイスレート */
-  --card: oklch(0.998 0.004 200 / 0.92);
-  --card-foreground: oklch(0.20 0.025 230);
-  --popover: oklch(0.998 0.004 200 / 0.96);
-  --popover-foreground: oklch(0.20 0.025 230);
-  --primary: oklch(0.56 0.17 212);               /* スカイブルー — メインCTA */
-  --primary-foreground: oklch(0.99 0.003 200);
-  --secondary: oklch(0.94 0.016 200);            /* 薄い空色 */
-  --secondary-foreground: oklch(0.24 0.022 228);
-  --muted: oklch(0.966 0.008 200);
-  --muted-foreground: oklch(0.52 0.018 220);     /* ミディアムスレート */
-  --accent: oklch(0.92 0.06 186);                /* ターコイズ薄背景 */
-  --accent-foreground: oklch(0.28 0.12 188);     /* 濃いターコイズ */
-  --destructive: oklch(0.60 0.20 26);
-  --border: oklch(0.88 0.014 200);               /* 空色ボーダー */
-  --input: oklch(0.90 0.010 200);
-  --ring: oklch(0.56 0.15 212);                  /* スカイブルーのリング */
-  --chart-1: oklch(0.56 0.17 212);               /* スカイブルー */
-  --chart-2: oklch(0.52 0.15 188);               /* ターコイズ */
-  --chart-3: oklch(0.62 0.13 148);               /* ミントグリーン */
-  --chart-4: oklch(0.65 0.12 310);               /* ラベンダー */
-  --chart-5: oklch(0.62 0.15 26);                /* コーラル */
-  --radius: 0.95rem;
-  --sidebar: oklch(0.99 0.005 200);
-  --sidebar-foreground: oklch(0.20 0.025 230);
-  --sidebar-primary: oklch(0.56 0.17 212);
-  --sidebar-primary-foreground: oklch(0.99 0.003 200);
-  --sidebar-accent: oklch(0.96 0.010 200);
-  --sidebar-accent-foreground: oklch(0.20 0.025 230);
-  --sidebar-border: oklch(0.90 0.012 200);
-  --sidebar-ring: oklch(0.56 0.15 212);
-  --brand-ink: oklch(0.20 0.025 230);            /* ディープスカイスレート（旧：冷たいネイビー）*/
-  --brand-clay: oklch(0.52 0.15 188);            /* ターコイズブルー — テキスト・アイコン用（白背景で高コントラスト）*/
-  --brand-sand: oklch(0.93 0.018 196);           /* スカイホワイト */
-  --brand-mist: oklch(0.88 0.05 210);            /* パウダーブルー（旧：クールブルー）*/
-}
+  /* ---- Neutral (5段のみ / 湖のインク×朝もや) ---- */
+  --ink: #12383c;
+  --ink-soft: #4c7276;
+  --ink-faint: #8fb0b2;
+  --line: #d9ecec;
+  --canvas: #f2f9f8;
+  --surface: #ffffff;
 
-.dark {
-  --background: oklch(0.16 0.01 255);
-  --foreground: oklch(0.96 0.01 80);
-  --card: oklch(0.22 0.01 255 / 0.86);
-  --card-foreground: oklch(0.96 0.01 80);
-  --popover: oklch(0.22 0.01 255 / 0.94);
-  --popover-foreground: oklch(0.96 0.01 80);
-  --primary: oklch(0.92 0.01 80);
-  --primary-foreground: oklch(0.2 0.01 255);
-  --secondary: oklch(0.26 0.01 255);
-  --secondary-foreground: oklch(0.96 0.01 80);
-  --muted: oklch(0.25 0.01 255);
-  --muted-foreground: oklch(0.76 0.01 80);
-  --accent: oklch(0.28 0.01 255);
-  --accent-foreground: oklch(0.96 0.01 80);
-  --destructive: oklch(0.69 0.18 24);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.68 0.04 65);
-  --chart-1: oklch(0.86 0.02 80);
-  --chart-2: oklch(0.66 0.05 40);
-  --chart-3: oklch(0.58 0.04 225);
-  --chart-4: oklch(0.72 0.05 100);
-  --chart-5: oklch(0.74 0.04 65);
-  --sidebar: oklch(0.22 0.01 255);
-  --sidebar-foreground: oklch(0.96 0.01 80);
-  --sidebar-primary: oklch(0.96 0.01 80);
-  --sidebar-primary-foreground: oklch(0.2 0.01 255);
-  --sidebar-accent: oklch(0.26 0.01 255);
-  --sidebar-accent-foreground: oklch(0.96 0.01 80);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.68 0.04 65);
+  /* ---- Accent 1色 (若葉グリーン) ---- */
+  --accent: #0ca678;
+  --accent-strong: #08825e;
+  --accent-soft: #dff5ec;
+
+  /* ---- Semantic (情報色。装飾に使わない) ---- */
+  --positive: #0b8a63;
+  --positive-soft: #def3ea;
+  --caution: #8a6410;
+  --caution-soft: #fdf3d9;
+
+  /* ---- 空のグラデーション (Signature: 天気連動ヒーロー専用) ---- */
+  --sky-sunny-from: #c3e9f4;
+  --sky-sunny-to: #d9f4e6;
+  --sky-cloudy-from: #d5e5ea;
+  --sky-cloudy-to: #e3efe9;
+  --sky-rainy-from: #b9cfdc;
+  --sky-rainy-to: #ccdfe0;
+
+  /* ---- Shadow (card + overlay の2段のみ) ---- */
+  --shadow-card: 0 6px 24px -12px rgb(18 56 60 / 0.14);
+  --shadow-overlay: 0 16px 48px -16px rgb(18 56 60 / 0.26);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 250ms;
+  --dur-enter: 600ms;
+
+  /* ---- shadcn mapping ---- */
+  --color-background: var(--canvas);
+  --color-surface: var(--surface);
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: #f2f4f2;
+  --secondary-foreground: var(--ink);
+  --muted: #f2f4f2;
+  --muted-foreground: var(--ink-soft);
+  --accent-foreground: var(--accent-strong);
+  --destructive: #d95252;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--accent);
+  --radius: 1rem;
+
+  /* ---- 互換エイリアス (Stage 5 で削除) ---- */
+  --color-primary: var(--positive);
+  --color-primary-dark: var(--positive);
+  --color-primary-soft: var(--positive-soft);
+  --color-coral: var(--accent);
+  --color-coral-soft: var(--accent-soft);
+  --color-sky: #7ec8f3;
+  --color-sky-strong: #4da7db;
+  --color-cream: var(--caution-soft);
+  --color-text: var(--ink);
+  --color-text-secondary: var(--ink-soft);
+  --color-border: var(--line);
+  --brand-ink: var(--ink);
+  --brand-clay: var(--positive);
+  --brand-sand: var(--caution-soft);
+  --brand-mist: var(--positive-soft);
+
+  /* ---- Typography (Display=丸ゴシック / Body=Noto Sans JP) ---- */
+  --font-body: var(--font-noto-sans-jp), "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+  --font-display: var(--font-m-plus-rounded), "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", var(--font-noto-sans-jp), sans-serif;
 }
 
 @layer base {
@@ -130,91 +138,934 @@
 
   html {
     @apply font-sans;
+    scroll-padding-top: 5.5rem;
   }
 
   body {
-    @apply text-foreground;
-    background:
-      radial-gradient(
-        1100px 480px at 20% -5%,
-        color-mix(in oklab, var(--brand-mist) 70%, transparent),
-        transparent 60%
-      ),
-      radial-gradient(
-        600px 300px at 90% 0%,
-        color-mix(in oklab, oklch(0.88 0.10 186) 32%, transparent),
-        transparent 55%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, white 55%, var(--background)) 0%,
-        var(--background) 30%,
-        var(--background) 100%
-      );
     min-height: 100%;
+    background: var(--color-background);
+    color: var(--color-text);
+    text-rendering: optimizeLegibility;
   }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(to right, rgb(0 180 190 / 0.018) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(0 180 190 / 0.013) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: linear-gradient(180deg, black, transparent 75%);
-    opacity: 0.28;
+  /* 見出しは丸ゴシック (おでかけの楽しさを声にする) */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 
   a,
   button,
   input,
-  select {
+  select,
+  textarea {
     -webkit-tap-highlight-color: transparent;
   }
 
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid rgb(12 166 120 / 40%);
+    outline-offset: 2px;
+  }
+
   ::selection {
-    background: color-mix(in oklab, var(--brand-clay) 20%, white);
+    background: var(--accent-soft);
   }
 }
 
 @layer components {
-  .glass-panel {
-    background: linear-gradient(
-      180deg,
-      rgb(255 255 255 / 0.86),
-      rgb(255 255 255 / 0.74)
-    );
-    border: 1px solid rgb(255 255 255 / 0.78);
-    box-shadow:
-      0 28px 70px -38px rgb(27 31 44 / 0.34),
-      inset 0 1px 0 rgb(255 255 255 / 0.8);
-    backdrop-filter: blur(22px);
+  .icon-button {
+    position: relative;
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: white;
+    color: var(--color-text);
+    transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
   }
 
-  .surface-card {
-    background: linear-gradient(
-      180deg,
-      rgb(255 255 255 / 0.92),
-      rgb(255 255 255 / 0.82)
-    );
-    border: 1px solid color-mix(in oklab, var(--border) 90%, white);
-    box-shadow: 0 22px 48px -34px rgb(24 29 43 / 0.32);
+  .icon-button:hover {
+    border-color: var(--ink-faint);
+    color: var(--color-primary-dark);
+    transform: translateY(-1px);
   }
 
   .section-kicker {
-    color: var(--muted-foreground);
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
+    color: var(--color-primary-dark);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
   }
 
-  .pill-chip {
-    border: 1px solid color-mix(in oklab, var(--border) 88%, white);
-    background: rgb(255 255 255 / 0.72);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
+  .weather-card {
+    width: 16.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    background: white;
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .spot-photo {
+    display: block;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .chip {
+    display: inline-flex;
+    min-height: 1.7rem;
+    align-items: center;
+    gap: 0.28rem;
+    border-radius: 999px;
+    background: var(--canvas);
+    padding: 0.25rem 0.6rem;
+    color: var(--ink-soft);
+    font-size: 0.67rem;
+    font-weight: 750;
+  }
+
+  .chip.is-green {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+  }
+
+  .chip.is-coral {
+    background: var(--color-coral-soft);
+    color: var(--accent-strong);
+  }
+
+  .recommendation-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 1.15rem;
+    background: white;
+    box-shadow: var(--shadow-card);
+    /* v2: エントランスアニメ廃止 */
+  }
+
+  .role-ribbon {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.7rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    background: var(--color-primary);
+    padding: 0.4rem 0.75rem;
+    color: white;
+    font-size: 0.68rem;
+    font-weight: 900;
+    box-shadow: var(--shadow-card);
+  }
+
+  .score-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.06em;
+  }
+
+  .skeleton {
+    border-radius: 0.85rem;
+    background: var(--muted);
+    animation: soft-pulse 1.2s ease-in-out infinite alternate;
+  }
+
+  .leaflet-container {
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    font-family: var(--font-body);
+    background: var(--muted);
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 0.9rem;
+    box-shadow: 0 16px 40px -22px rgb(32 37 34 / 65%);
+  }
+
+  .leaflet-popup-content {
+    margin: 0.75rem 0.9rem;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .leaflet-tooltip.rank-label {
+    border: 0;
+    border-radius: 999px;
+    background: var(--color-coral);
+    color: white;
+    font-size: 0.68rem;
+    font-weight: 900;
+    box-shadow: 0 8px 20px -14px rgb(32 37 34 / 75%);
+  }
+
+  /* ================================================================
+     v2 デザインシステム (Stage 2〜)
+     方針: 枠線なし・余白と写真で区切る / アクセント1色 / 影2段 /
+           4pxグリッド / モーションは操作直後の即時反応のみ
+     ================================================================ */
+
+  .page-shell {
+    width: min(100%, 1200px);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 4vw, 32px);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding-inline: 24px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out), background var(--dur-base) var(--ease-out);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-strong);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding-inline: 20px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--ink-faint);
+    background: var(--canvas);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding-inline: 16px;
+    border-radius: 999px;
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+
+  .btn-ghost:hover {
+    background: var(--canvas);
+    color: var(--ink);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+
+  .pill:active {
+    transform: scale(0.97);
+  }
+
+  .pill[aria-pressed="true"],
+  .pill.is-active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .card-v2 {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .badge-photo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 92%);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    color: var(--ink);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-photo.is-positive {
+    background: var(--positive);
+    color: #fff;
+  }
+
+  .sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgb(31 43 38 / 0.4);
+    animation: backdrop-in var(--dur-base) var(--ease-out) both;
+  }
+
+  .sheet-panel {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 81;
+    max-height: 85dvh;
+    overflow-y: auto;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--surface);
+    box-shadow: var(--shadow-overlay);
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    animation: sheet-in var(--dur-slow) var(--ease-out) both;
+  }
+
+  .heart-button {
+    display: inline-flex;
+    height: 40px;
+    width: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 92%);
+    color: var(--ink-soft);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+
+  .heart-button:active {
+    transform: scale(0.9);
+  }
+
+  .heart-button.is-active {
+    color: var(--accent);
+  }
+
+  .heart-button.is-active svg {
+    animation: heart-pop var(--dur-slow) var(--ease-out);
+    fill: currentColor;
+  }
+
+  .count-pop {
+    display: inline-block;
+    animation: chip-pop var(--dur-base) var(--ease-out);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ================================================================
+     Signature: 天気連動ヒーロー (Organic Morph × 空模様)
+     「今日の空が、ページの背景になる」— 晴れ/曇り/雨でグラデが変わる
+     ================================================================ */
+
+  .sky-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    background: linear-gradient(160deg, var(--sky-from, var(--sky-sunny-from)), var(--sky-to, var(--sky-sunny-to)));
+  }
+
+  .sky-hero.is-sunny { --sky-from: var(--sky-sunny-from); --sky-to: var(--sky-sunny-to); }
+  .sky-hero.is-cloudy { --sky-from: var(--sky-cloudy-from); --sky-to: var(--sky-cloudy-to); }
+  .sky-hero.is-rainy { --sky-from: var(--sky-rainy-from); --sky-to: var(--sky-rainy-to); }
+
+  /* 陽だまり (晴れの日だけ右上ににじむ光) */
+  .sky-hero.is-sunny::before {
+    content: "";
+    position: absolute;
+    top: -80px;
+    right: -60px;
+    height: 260px;
+    width: 260px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgb(255 244 200 / 85%), transparent 65%);
+    pointer-events: none;
+  }
+
+  /* 雲ブロブ: ゆっくり流れる有機シェイプ */
+  .sky-cloud {
+    position: absolute;
+    background: rgb(255 255 255 / 70%);
+    border-radius: 55% 45% 60% 40% / 55% 60% 40% 45%;
+    filter: blur(2px);
+    pointer-events: none;
+    animation: cloud-drift 36s linear infinite;
+  }
+
+  .sky-cloud.is-far {
+    background: rgb(255 255 255 / 45%);
+    animation-duration: 52s;
+    animation-delay: -18s;
+  }
+
+  /* 雨すじ (雨の日だけ) */
+  .sky-hero.is-rainy::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      100deg,
+      transparent 0 22px,
+      rgb(255 255 255 / 22%) 22px 23px
+    );
+    pointer-events: none;
+  }
+
+  /* ================================================================
+     データタイル: 装飾アイコンを置かず、件数そのものを視覚の主役にする
+     ================================================================ */
+  .data-tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    padding: 16px 20px 18px;
+    box-shadow: var(--shadow-card);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .data-tile:active {
+    transform: scale(0.985);
+  }
+
+  .data-tile__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+
+  .data-tile__value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 4px;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    transition: color var(--dur-base) var(--ease-out);
+  }
+
+  .data-tile__unit {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  /* 下辺を走るアクセントの線: hoverで左から伸びる */
+  .data-tile::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .data-tile:hover::after {
+    transform: scaleX(1);
+  }
+
+  .data-tile:hover .data-tile__value {
+    color: var(--accent-strong);
+  }
+
+  /* 記事本文 (safe-markdown の出力に当てる) */
+  .article-body {
+    color: var(--ink);
+    font-size: 0.9375rem;
+    line-height: 2;
+  }
+  .article-body p { margin-block: 1.25em; }
+  .article-body h2 {
+    margin-block: 1.8em 0.7em;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    border-left: 4px solid var(--accent);
+    padding-left: 12px;
+  }
+  .article-body h3 {
+    margin-block: 1.5em 0.5em;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 900;
+  }
+  .article-body ul { margin-block: 1.2em; padding-left: 1.3em; list-style: disc; }
+  .article-body li { margin-block: 0.4em; }
+  .article-body a { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+  .article-body strong { font-weight: 900; }
+  .article-body hr { margin-block: 2em; border: 0; border-top: 1px solid var(--line); }
+  .article-body figure { margin-block: 1.6em; }
+  .article-body figure img {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+  .article-body figcaption {
+    margin-top: 8px;
+    color: var(--ink-faint);
+    font-size: 0.75rem;
+    line-height: 1.7;
+  }
+
+  /* 本文中のスポットカード */
+  .article-spot {
+    background: var(--surface);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* ランキング順位のバッジ */
+  .rank-badge {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 1;
+    display: grid;
+    min-width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rank-badge.is-top {
+    background: var(--accent);
+  }
+
+  /* 等高線テクスチャ: 地図の世界観を背景で語る (画像ゼロ) */
+  .topo-texture::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-radial-gradient(
+      circle at 82% 18%,
+      rgb(255 255 255 / 32%) 0 1px,
+      transparent 1px 26px
+    );
+    pointer-events: none;
+  }
+
+  /* 波の区切り (セクション間) */
+  /* FABの呼吸 */
+  .fab-breathe::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 999px;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: fab-ring 3s var(--ease-out) infinite;
+    pointer-events: none;
+  }
+
+  /* Display書体ユーティリティ */
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* ================================================================
+     モーション振付 (T0: CSS + IntersectionObserver)
+     主役: ヒーロー開幕stagger + 天気モーショングラフィック
+     脇役: セクションReveal / 波ディバイダ
+     ================================================================ */
+
+  /* ヒーロー開幕 (純CSS: JSなしでも実行される) */
+  .hero-enter > * {
+    animation: rise-in var(--dur-enter) var(--ease-out-expo) both;
+  }
+
+  .hero-enter > :nth-child(2) { animation-delay: 90ms; }
+  .hero-enter > :nth-child(3) { animation-delay: 180ms; }
+  .hero-enter > :nth-child(4) { animation-delay: 270ms; }
+
+  /* スクロールReveal (JSがある場合のみ隠す → IOで解除) */
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity var(--dur-enter) var(--ease-out-expo), transform var(--dur-enter) var(--ease-out-expo);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .js [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* 太陽 (晴れの日のモーショングラフィック): レイがゆっくり回る */
+  .sun-motif {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    pointer-events: none;
+  }
+
+  .sun-motif .sun-rays {
+    transform-origin: center;
+    animation: sun-spin 40s linear infinite;
+  }
+
+  /* 雨粒 (雨の日のモーショングラフィック) */
+  .rain-drop {
+    position: absolute;
+    top: -20px;
+    width: 2px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 65%);
+    animation: rain-fall 1.6s linear infinite;
+    pointer-events: none;
+  }
+
+  /* 波ディバイダ: ゆるやかに流れる (雰囲気系ループ) */
+  .wave-flow {
+    display: block;
+    width: 200%;
+    animation: wave-slide 9s linear infinite;
+  }
+
+  /* ================================================================
+     ページ固有クラス (refresh.css / cargo-effects.css から移植)
+     旧テーマの装飾を落とし、新トークンで書き直したもの
+     ================================================================ */
+
+  .site-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    border-radius: 0 0 var(--radius-md) 0;
+    background: var(--ink);
+    padding: 12px 20px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .site-skip-link:focus {
+    left: 0;
+  }
+
+  .utility-page,
+  .today-form-page,
+  .decision-page,
+  .vote-page,
+  .place-detail {
+    width: min(100%, 1200px);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 4vw, 32px);
+  }
+
+  .utility-hero,
+  .decision-board-header {
+    margin-bottom: 24px;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    color: var(--accent-strong);
+    font-size: 0.6875rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+  }
+
+  .back-link {
+    color: var(--ink-soft);
+  }
+  .back-link:hover {
+    color: var(--ink);
+  }
+
+  /* 空状態 */
+  .empty-state {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+  .empty-state-icon {
+    display: inline-grid;
+    height: 56px;
+    width: 56px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  .empty-state-icon.is-mint {
+    background: var(--positive-soft);
+    color: var(--positive);
+  }
+
+  /* 今日どこ行く？診断 */
+  .today-step-intro {
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .today-progress-track {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .today-progress {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width var(--dur-slow) var(--ease-out);
+  }
+  .today-summary {
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    padding: 16px;
+    box-shadow: var(--shadow-card);
+  }
+  .today-action-bar {
+    position: sticky;
+    bottom: max(76px, env(safe-area-inset-bottom));
+    z-index: 30;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 92%);
+    backdrop-filter: blur(12px);
+    padding: 8px;
+    box-shadow: var(--shadow-overlay);
+  }
+
+  /* おすすめ3件 */
+  .decision-count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+  }
+  .decision-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .decision-reason {
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    padding: 12px 14px;
+    color: var(--ink);
+    font-size: 0.8125rem;
+    line-height: 1.9;
+  }
+  .decision-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* 投票 */
+  .vote-option {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .vote-option:hover {
+    border-color: var(--accent);
+  }
+  .vote-option.is-selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .vote-tally {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .vote-tally > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  /* スポット詳細 */
+  .place-hero {
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .place-hero-copy {
+    background: var(--surface);
+  }
+  .place-photo-tile {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--muted);
+  }
+  .place-sticky-action {
+    border-top: 1px solid var(--line);
+    background: rgb(255 255 255 / 94%);
+  }
+
+  .history-summary,
+  .cargo-info-panel {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+  .cargo-fact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-sm);
+    background: var(--canvas);
+    padding: 6px 10px;
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* 管理画面 */
+  .admin-toolbar {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+  }
+  .admin-login-page {
+    display: grid;
+    min-height: 70vh;
+    place-items: center;
+    padding-inline: 16px;
+  }
+  .admin-login-card {
+    width: min(100%, 380px);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    padding: 28px;
+    box-shadow: var(--shadow-card);
+  }
+  .admin-login-icon {
+    display: inline-grid;
+    height: 48px;
+    width: 48px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  .admin-login-note {
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    line-height: 1.8;
+  }
+
+  /* ピル型マップピン (Airbnb型: 価格/名前ラベルをそのままピンに) */
+  .map-pill-pin-wrap {
+    background: transparent;
+    border: 0;
+  }
+
+  .map-pill-pin {
+    display: inline-block;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+    padding: 4px 10px;
+    color: var(--ink);
+    font-size: 0.75rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .map-pill-pin:hover {
+    transform: translate(-50%, -100%) scale(1.08);
+  }
+
+  .map-pill-pin.is-want {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .map-pill-pin.is-visited {
+    border-color: var(--positive);
+    background: var(--positive-soft);
+    color: var(--positive);
+  }
+
+  .map-pill-pin.is-recommended,
+  .map-pill-pin.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
   }
 }
 
@@ -223,12 +1074,101 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* 旧テーマ由来のユーティリティ (新トークンへ寄せた互換) */
+  .text-line { color: var(--line); }
+  .bg-mint { background-color: var(--positive-soft); }
+  .bg-mint-soft { background-color: var(--positive-soft); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-float { box-shadow: var(--shadow-overlay); }
 }
 
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+@media (min-width: 768px) {
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes card-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes soft-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes chip-pop {
+  from { transform: scale(0.9); opacity: 0.4; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cloud-drift {
+  from { transform: translateX(-140px); }
+  to { transform: translateX(calc(100vw + 140px)); }
+}
+
+@keyframes fab-ring {
+  0% { opacity: 0.55; transform: scale(0.9); }
+  70% { opacity: 0; transform: scale(1.25); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sun-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rain-fall {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(190px); opacity: 0; }
+}
+
+@keyframes wave-slide {
+  to { transform: translateX(-50%); }
 }
