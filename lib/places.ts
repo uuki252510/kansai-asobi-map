@@ -1,5 +1,6 @@
-import { supabase } from './supabase/client'
-import type { Place, Review } from './supabase/database.types'
+import { unstable_cache } from "next/cache"
+import { supabase } from "./supabase/client"
+import type { IndoorType, Place, Prefecture, PriceType, Review, TargetAge } from "./supabase/database.types"
 
 export interface PlaceFilters {
   prefecture?: string
@@ -18,168 +19,283 @@ export interface PlaceWithAvgRating extends Place {
   review_count: number
 }
 
-export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAvgRating[]> {
-  let query = supabase
-    .from('places')
-    .select(`
-      *,
-      reviews (rating)
-    `)
-    .eq('is_published', true)
-    .order('created_at', { ascending: false })
+type PlaceRecord = Partial<Place> & {
+  id: string
+  name: string
+  created_at: string
+  reviews?: { rating: number }[]
+}
 
-  if (filters.prefecture) {
-    query = query.eq('prefecture', filters.prefecture)
+export function normalizePlace(row: PlaceRecord): Place {
+  return {
+    ...(row as Place),
+    target_ages: Array.isArray(row.target_ages) ? row.target_ages : [],
+    mood_tags: Array.isArray(row.mood_tags) ? row.mood_tags : [],
+    companion_types: Array.isArray(row.companion_types) ? row.companion_types : [],
+    recommended_weather: Array.isArray(row.recommended_weather) ? row.recommended_weather : [],
+    recommended_seasons: Array.isArray(row.recommended_seasons) ? row.recommended_seasons : [],
+    recommended_time_of_day: Array.isArray(row.recommended_time_of_day) ? row.recommended_time_of_day : [],
+    average_stay_minutes: row.average_stay_minutes ?? null,
+    activity_level: row.activity_level ?? null,
+    healing_score: row.healing_score ?? null,
+    child_fun_score: row.child_fun_score ?? null,
+    date_score: row.date_score ?? null,
+    photo_score: row.photo_score ?? null,
+    rainy_day_score: row.rainy_day_score ?? null,
+    crowd_level: row.crowd_level ?? null,
+    price_min: row.price_min ?? null,
+    price_max: row.price_max ?? null,
+    recommended_age_min: row.recommended_age_min ?? null,
+    recommended_age_max: row.recommended_age_max ?? null,
+    reservation_required: row.reservation_required ?? null,
+    same_day_booking: row.same_day_booking ?? null,
+    stroller_accessible: row.stroller_accessible ?? null,
+    barrier_free: row.barrier_free ?? null,
+    pet_friendly: row.pet_friendly ?? null,
+    meal_available: row.meal_available ?? null,
+    last_verified_at: row.last_verified_at ?? null,
+    updated_at: row.updated_at ?? row.created_at,
   }
-  if (filters.indoor_type) {
-    query = query.eq('indoor_type', filters.indoor_type)
+}
+
+function withRating(row: PlaceRecord): PlaceWithAvgRating {
+  const reviews = row.reviews ?? []
+  const avgRating = reviews.length
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    : null
+  return {
+    ...normalizePlace(row),
+    avg_rating: avgRating,
+    review_count: reviews.length,
   }
-  if (filters.price_type) {
-    query = query.eq('price_type', filters.price_type)
+}
+
+const PAGE_SIZE = 1000
+
+/**
+ * Supabaseの1リクエスト1000行上限を超えても全件取れるよう .range() でページングする。
+ */
+async function fetchAllRows<T>(buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const rows: T[] = []
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await buildQuery(from, from + PAGE_SIZE - 1)
+    if (error) throw error
+    rows.push(...(data ?? []))
+    if (!data || data.length < PAGE_SIZE) break
   }
-  if (filters.has_parking) {
-    query = query.eq('has_parking', true)
-  }
-  if (filters.has_nursing_room) {
-    query = query.eq('has_nursing_room', true)
-  }
-  if (filters.has_diaper_space) {
-    query = query.eq('has_diaper_space', true)
-  }
-  if (filters.rainy_day_ok) {
-    query = query.eq('rainy_day_ok', true)
-  }
-  if (filters.target_age) {
-    query = query.contains('target_ages', [filters.target_age])
-  }
+  return rows
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PlacesQuery = any
+
+/**
+ * フィルタ適用を一覧・件数カウントで共有するビルダー。
+ */
+export function applyPlaceFilters(query: PlacesQuery, filters: PlaceFilters): PlacesQuery {
+  if (filters.prefecture) query = query.eq("prefecture", filters.prefecture as Prefecture)
+  if (filters.indoor_type) query = query.eq("indoor_type", filters.indoor_type as IndoorType)
+  if (filters.price_type) query = query.eq("price_type", filters.price_type as PriceType)
+  if (filters.has_parking) query = query.eq("has_parking", true)
+  if (filters.has_nursing_room) query = query.eq("has_nursing_room", true)
+  if (filters.has_diaper_space) query = query.eq("has_diaper_space", true)
+  if (filters.rainy_day_ok) query = query.eq("rainy_day_ok", true)
+  if (filters.target_age) query = query.contains("target_ages", [filters.target_age as TargetAge])
   if (filters.search) {
-    query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,city.ilike.%${filters.search}%`)
+    const safeSearch = filters.search.replace(/[,%()]/g, " ").trim()
+    if (safeSearch) {
+      query = query.or(
+        `name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%,city.ilike.%${safeSearch}%`,
+      )
+    }
   }
+  return query
+}
 
-  const { data, error } = await query
+type ViewRecord = PlaceRecord & { avg_rating: number | string | null; review_count: number | null }
+
+function fromViewRow(row: ViewRecord): PlaceWithAvgRating {
+  return {
+    ...normalizePlace(row),
+    avg_rating: row.avg_rating === null ? null : Number(row.avg_rating),
+    review_count: row.review_count ?? 0,
+  }
+}
+
+/**
+ * places_with_rating view から取得。view未適用環境では旧join経路にフォールバック。
+ */
+export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAvgRating[]> {
+  try {
+    const rows = await fetchAllRows<ViewRecord>((from, to) =>
+      applyPlaceFilters(
+        supabase
+          .from("places_with_rating" as "places")
+          .select("*")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false }),
+        filters,
+      ).range(from, to),
+    )
+    return rows.map(fromViewRow)
+  } catch {
+    const rows = await fetchAllRows<PlaceRecord>((from, to) =>
+      applyPlaceFilters(
+        supabase
+          .from("places")
+          .select("*, reviews(rating)")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false }),
+        filters,
+      ).range(from, to),
+    )
+    return rows.map((row) => withRating(row))
+  }
+}
+
+export async function getPlacesByIds(ids: string[]): Promise<PlaceWithAvgRating[]> {
+  if (ids.length === 0) return []
+  const { data, error } = await supabase
+    .from("places")
+    .select("*, reviews(rating)")
+    .eq("is_published", true)
+    .in("id", ids)
 
   if (error) throw error
-
-  return (data ?? []).map((row) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const place = row as any
-    const reviews: { rating: number }[] = place.reviews ?? []
-    const avg_rating = reviews.length
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : null
-    return { ...(place as Place), avg_rating, review_count: reviews.length }
-  })
+  const order = new Map(ids.map((id, index) => [id, index]))
+  return (data ?? [])
+    .map((row) => withRating(row as unknown as PlaceRecord))
+    .sort((left, right) => (order.get(left.id) ?? 999) - (order.get(right.id) ?? 999))
 }
 
 export async function getPlaceById(id: string): Promise<(Place & { reviews: Review[] }) | null> {
   const { data, error } = await supabase
-    .from('places')
-    .select(`*, reviews(*)`)
-    .eq('id', id)
-    .eq('is_published', true)
+    .from("places")
+    .select("*, reviews(*)")
+    .eq("id", id)
+    .eq("is_published", true)
     .single()
 
-  if (error) return null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data as any as Place & { reviews: Review[] }
+  if (error || !data) return null
+  const record = data as unknown as PlaceRecord & { reviews?: Review[] }
+  return {
+    ...normalizePlace(record),
+    reviews: record.reviews ?? [],
+  }
 }
 
-export function calcDistance(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number
-): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLng = ((lng2 - lng1) * Math.PI) / 180
+/**
+ * フィルタなし全件のサーバーキャッシュ版。/recommend /map /when など
+ * 全件を必要とするページはこれを共有する (5分ごとに再検証、adminの
+ * revalidateTag("places") で即時更新)。
+ */
+export const getAllPlaces = unstable_cache(
+  () => getPlaces({}),
+  ["all-places"],
+  { revalidate: 300, tags: ["places"] },
+)
+
+export async function getPublishedPlaceIndex() {
+  try {
+    return await fetchAllRows<{ id: string; created_at: string; updated_at: string | null }>((from, to) =>
+      supabase
+        .from("places")
+        .select("id, created_at, updated_at")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .range(from, to),
+    )
+  } catch {
+    return []
+  }
+}
+
+export function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const radius = 6371
+  const latitudeDelta = ((lat2 - lat1) * Math.PI) / 180
+  const longitudeDelta = ((lng2 - lng1) * Math.PI) / 180
   const a =
-    Math.sin(dLat / 2) ** 2 +
+    Math.sin(latitudeDelta / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(longitudeDelta / 2) ** 2
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 export async function getPopularPlaces(limit = 10): Promise<PlaceWithAvgRating[]> {
-  const all = await getPlaces({})
+  const all = await getAllPlaces()
   return all
-    .sort((a, b) => {
-      if (b.review_count !== a.review_count) return b.review_count - a.review_count
-      return (b.avg_rating ?? 0) - (a.avg_rating ?? 0)
+    .sort((left, right) => {
+      if (right.review_count !== left.review_count) return right.review_count - left.review_count
+      return (right.avg_rating ?? 0) - (left.avg_rating ?? 0)
     })
     .slice(0, limit)
 }
 
 const FEATURED_NAMES: Record<string, string[]> = {
-  '大阪府': ['ユニバーサル・スタジオ・ジャパン（USJ）', '海遊館', 'キッズプラザ大阪', '天王寺動物園'],
-  '兵庫県': ['神戸どうぶつ王国', '六甲山アスレチックパーク GREENIA', 'ひょうごこどもの館', '姫路城'],
-  '京都府': ['京都水族館', '東映太秦映画村', '梅小路公園'],
-  '奈良県': ['奈良公園', 'アスレチックの森（奈良）', 'ならファミリー屋上遊園地'],
-  '滋賀県': ['びわ湖こどもの国', '滋賀県立琵琶湖博物館', 'マキノ高原'],
-  '和歌山県': ['アドベンチャーワールド', '串本海中公園', '和歌山城'],
+  大阪府: ["ユニバーサル・スタジオ・ジャパン（USJ）", "海遊館", "キッズプラザ大阪", "天王寺動物園"],
+  兵庫県: ["神戸どうぶつ王国", "六甲山アスレチックパーク GREENIA", "ひょうごこどもの館", "姫路城"],
+  京都府: ["京都水族館", "東映太秦映画村", "梅小路公園"],
+  奈良県: ["奈良公園", "アスレチックの森（奈良）", "ならファミリー屋上遊園地"],
+  滋賀県: ["びわ湖こどもの国", "滋賀県立琵琶湖博物館", "マキノ高原"],
+  和歌山県: ["アドベンチャーワールド", "串本海中公園", "和歌山城"],
 }
 
 export async function getRecommendedPlaces(): Promise<PlaceWithAvgRating[]> {
   const result: PlaceWithAvgRating[] = []
 
   for (const [prefecture, names] of Object.entries(FEATURED_NAMES)) {
-    // 優先名称で検索（全マッチを取得して優先順にソート）
     const { data } = await supabase
-      .from('places')
-      .select('*, reviews(rating)')
-      .eq('is_published', true)
-      .eq('prefecture', prefecture)
-      .in('name', names)
-      .not('image_url', 'is', null)
+      .from("places")
+      .select("*, reviews(rating)")
+      .eq("is_published", true)
+      .eq("prefecture", prefecture as Prefecture)
+      .in("name", names)
+      .not("image_url", "is", null)
 
     if (data?.length) {
-      const sorted = [...data].sort((a, b) => {
-        const ai = names.indexOf((a as any).name)
-        const bi = names.indexOf((b as any).name)
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+      const sorted = [...data].sort((left, right) => {
+        const leftIndex = names.indexOf((left as PlaceRecord).name)
+        const rightIndex = names.indexOf((right as PlaceRecord).name)
+        return (leftIndex === -1 ? 999 : leftIndex) - (rightIndex === -1 ? 999 : rightIndex)
       })
-      const row = sorted[0] as any
-      const reviews: { rating: number }[] = row.reviews ?? []
-      result.push({
-        ...row as Place,
-        avg_rating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null,
-        review_count: reviews.length,
-      })
+      result.push(withRating(sorted[0] as unknown as PlaceRecord))
       continue
     }
 
-    // フォールバック: 各県で画像あり・施設充実のスポット
     const { data: fallback } = await supabase
-      .from('places')
-      .select('*, reviews(rating)')
-      .eq('is_published', true)
-      .eq('prefecture', prefecture)
-      .not('image_url', 'is', null)
-      .eq('has_parking', true)
+      .from("places")
+      .select("*, reviews(rating)")
+      .eq("is_published", true)
+      .eq("prefecture", prefecture as Prefecture)
+      .not("image_url", "is", null)
+      .eq("has_parking", true)
       .limit(1)
 
-    if (fallback?.length) {
-      const row = fallback[0] as any
-      const reviews: { rating: number }[] = row.reviews ?? []
-      result.push({
-        ...row as Place,
-        avg_rating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null,
-        review_count: reviews.length,
-      })
-    }
+    if (fallback?.length) result.push(withRating(fallback[0] as unknown as PlaceRecord))
   }
 
   return result
 }
 
-export const PREFECTURES = ['大阪府', '兵庫県', '京都府', '奈良県', '滋賀県', '和歌山県'] as const
+export const PREFECTURES = ["大阪府", "兵庫県", "京都府", "奈良県", "滋賀県", "和歌山県"] as const
+
+export const AREA_SLUGS: Record<string, (typeof PREFECTURES)[number]> = {
+  osaka: "大阪府",
+  hyogo: "兵庫県",
+  kyoto: "京都府",
+  nara: "奈良県",
+  shiga: "滋賀県",
+  wakayama: "和歌山県",
+}
 
 export const CONDITION_LABELS: Record<string, string> = {
-  rainy_day_ok: '雨の日OK',
-  indoor: '屋内',
-  free: '無料',
-  has_parking: '駐車場あり',
-  has_nursing_room: '授乳室あり',
-  has_diaper_space: 'おむつ替えあり',
-  '0-2': '0〜2歳向け',
-  '6-12': '小学生向け',
+  rainy_day_ok: "雨の日OK",
+  indoor: "屋内",
+  free: "無料",
+  has_parking: "駐車場あり",
+  has_nursing_room: "授乳室あり",
+  has_diaper_space: "おむつ替えあり",
+  "0-2": "0〜2歳向け",
+  "6-12": "小学生向け",
 }

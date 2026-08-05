@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPlaces, calcDistance } from '@/lib/places'
+import { getAllPlaces, calcDistance } from '@/lib/places'
 import type { PlaceWithAvgRating } from '@/lib/places'
 
 export type NearbyPlace = PlaceWithAvgRating & { distanceKm: number }
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'lat/lng required' }, { status: 400 })
   }
 
-  const all = await getPlaces({})
+  const all = await getAllPlaces()
   const withDist: NearbyPlace[] = all
     .filter(p => p.latitude !== null && p.longitude !== null)
     .map(p => ({
