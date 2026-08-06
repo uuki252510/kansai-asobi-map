@@ -192,8 +192,8 @@ export default function HomeExperience({
 
       {/* エリアハブ */}
       <Reveal as="section">
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="text-lg font-black text-ink sm:text-xl">エリアからさがす</h2>
+        <div className="section-rule flex items-end justify-between gap-3">
+          <h2 className="font-display text-[1.0625rem] font-extrabold tracking-[0.02em] text-ink sm:text-xl">エリアからさがす</h2>
           <Link href="/areas" className="text-sm font-bold text-accent-strong">
             すべてのエリア →
           </Link>
@@ -222,8 +222,8 @@ export default function HomeExperience({
       {/* 今週末のイベント (夏祭り・花火・商業施設の催し) */}
       {weekendEvents.length > 0 && (
         <Reveal as="section">
-          <div className="flex items-end justify-between gap-3">
-            <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">今週末のイベント</h2>
+          <div className="section-rule flex items-end justify-between gap-3">
+            <h2 className="font-display text-[1.0625rem] font-extrabold tracking-[0.02em] text-ink sm:text-xl">今週末のイベント</h2>
             <Link href="/events" className="text-sm font-bold text-accent-strong">
               イベント一覧 →
             </Link>

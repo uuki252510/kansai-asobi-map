@@ -50,8 +50,8 @@ export default function SpotCarousel({
 
   return (
     <section>
-      <div className="flex items-end justify-between gap-3">
-        <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">{title}</h2>
+      <div className="section-rule flex items-end justify-between gap-3">
+        <h2 className="font-display text-[1.0625rem] font-extrabold tracking-[0.02em] text-ink sm:text-xl">{title}</h2>
         <div className="flex items-center gap-2">
           {href && (
             <Link href={href} className="text-sm font-bold text-accent-strong">

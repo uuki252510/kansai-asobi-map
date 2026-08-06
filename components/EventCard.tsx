@@ -48,20 +48,20 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
         {!isOngoing && event.is_free && <span className="badge-photo absolute left-2 top-2">入場無料</span>}
         {/* 免責は alt が担うので、視覚バッジは読み上げから外す (リンク名の先頭を汚さない) */}
         {cover && isStockPhoto && (
-          <span aria-hidden className="absolute bottom-2 right-2 rounded-full bg-black/65 px-2 py-0.5 text-[11px] font-bold text-white">
+          <span aria-hidden className="absolute bottom-2 right-2 rounded-[2px] bg-black/65 px-2 py-0.5 text-[11px] font-bold text-white">
             写真はイメージ
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-xs font-black text-accent-strong">
+      <p className="mt-2 border-t border-line pt-2 text-[11px] font-bold tracking-[0.08em] text-accent-strong">
         {/* カバーが日付を大きく出しているときだけ、同じ日付を繰り返さない */}
         {!(cover === null && !event.highlight_value && periodLabel === badgeDate) && periodLabel}
         {event.event_category && (
           <span className="ml-1.5 font-bold text-ink-soft">{EVENT_CATEGORY_LABELS[event.event_category]}</span>
         )}
       </p>
-      <h3 className="mt-0.5 line-clamp-2 text-sm font-black leading-snug text-ink">{event.name}</h3>
+      <h3 className="font-display mt-1 line-clamp-2 text-[0.9375rem] font-extrabold leading-snug text-ink">{event.name}</h3>
       {(event.venue_name || event.city) && (
         <p className="mt-0.5 truncate text-xs text-ink-soft">{event.venue_name ?? `${event.prefecture ?? ""}${event.city ?? ""}`}</p>
       )}

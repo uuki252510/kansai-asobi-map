@@ -21,8 +21,8 @@ export default function ArticleList({
   return (
     <section>
       {title && (
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">{title}</h2>
+        <div className="section-rule flex items-end justify-between gap-3">
+          <h2 className="font-display text-[1.0625rem] font-extrabold tracking-[0.02em] text-ink sm:text-xl">{title}</h2>
           <Link href={href} className="text-sm font-bold text-accent-strong">
             記事一覧 →
           </Link>
@@ -49,8 +49,8 @@ export default function ArticleList({
                     />
                   )}
                 </div>
-                <p className="mt-2 text-xs font-black text-accent-strong">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
-                <h3 className="mt-0.5 line-clamp-2 text-sm font-black leading-snug text-ink">{article.title}</h3>
+                <p className="mt-2 border-t border-line pt-2 text-[11px] font-bold tracking-[0.08em] text-accent-strong">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
+                <h3 className="font-display mt-1 line-clamp-2 text-base font-extrabold leading-snug text-ink">{article.title}</h3>
                 {article.excerpt && (
                   <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-soft">{article.excerpt}</p>
                 )}
@@ -66,7 +66,7 @@ export default function ArticleList({
                 )}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-black leading-snug text-ink group-hover:text-accent-strong">
+                <span className="font-display block line-clamp-2 text-sm font-extrabold leading-snug text-ink group-hover:text-accent-strong">
                   {article.title}
                 </span>
                 {article.excerpt && (

@@ -53,7 +53,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
             <h2 className="flex items-center gap-2 text-lg font-black text-ink">
               <Clock3 className="size-5 text-accent-strong" aria-hidden />営業時間
             </h2>
-            <span className={`rounded-full px-3 py-1.5 text-xs font-black ${stateStyles[status.state]}`}>
+            <span className={`rounded-[2px] px-3 py-1.5 text-xs font-black ${stateStyles[status.state]}`}>
               {status.label}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
         <section className="card-v2 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-black text-ink">料金</h2>
-            {prices.label && <span className="rounded-full bg-accent-soft px-3 py-1.5 text-xs font-black text-accent-strong">{prices.label}</span>}
+            {prices.label && <span className="rounded-[2px] bg-accent-soft px-3 py-1.5 text-xs font-black text-accent-strong">{prices.label}</span>}
           </div>
           <div className="mt-4 space-y-4">
             {details.pricePlans.map((plan) => (
@@ -241,7 +241,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
       {place.last_verified_at && (
         <p className="text-xs text-ink-soft">
           情報確認日: {new Date(place.last_verified_at).toLocaleDateString("ja-JP")}
-          <span className={`ml-2 rounded-full px-2 py-0.5 font-bold ${freshness === "fresh" ? "bg-positive-soft text-positive" : "bg-caution-soft text-caution"}`}>
+          <span className={`ml-2 rounded-[2px] px-2 py-0.5 font-bold ${freshness === "fresh" ? "bg-positive-soft text-positive" : "bg-caution-soft text-caution"}`}>
             {FRESHNESS_LABELS[freshness]}
           </span>
           <span className="ml-2">最新情報は公式サイトをご確認ください。</span>

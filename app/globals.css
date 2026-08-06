@@ -181,6 +181,12 @@
 }
 
 @layer components {
+  /* セクションの柱。見出しの上に細罫を引いて紙面の区切りにする */
+  .section-rule {
+    border-top: 1px solid var(--ink);
+    padding-top: 14px;
+  }
+
   /* マストヘッドの欄外情報 (日付/天気/件数)。上に太罫、下に細罫 */
   .masthead-rule {
     border-top: 3px solid var(--ink);
@@ -235,7 +241,7 @@
     min-height: 1.7rem;
     align-items: center;
     gap: 0.28rem;
-    border-radius: 999px;
+    border-radius: 2px;
     background: var(--canvas);
     padding: 0.25rem 0.6rem;
     color: var(--ink-soft);
@@ -366,7 +372,7 @@
     min-height: 44px;
     padding-inline: 20px;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: 4px;
     background: var(--surface);
     color: var(--ink);
     font-size: 0.875rem;
@@ -410,13 +416,14 @@
     justify-content: center;
     gap: 6px;
     min-height: 40px;
-    padding: 8px 14px;
+    padding: 8px 16px;
     border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--surface);
+    border-radius: 2px;
+    background: transparent;
     color: var(--ink);
     font-size: 0.8125rem;
     font-weight: 700;
+    letter-spacing: 0.04em;
     white-space: nowrap;
     cursor: pointer;
     transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
@@ -433,17 +440,18 @@
     color: #fff;
   }
 
+  /* 紙面の枠。影で浮かせず、罫線で区切る */
   .card-v2 {
     background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    border: 1px solid var(--line);
+    border-radius: 2px;
   }
 
   .badge-photo {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    border-radius: 999px;
+    border-radius: 2px;
     background: rgb(255 255 255 / 92%);
     backdrop-filter: blur(4px);
     padding: 4px 10px;

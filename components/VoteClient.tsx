@@ -122,7 +122,7 @@ export default function VoteClient({ token }: { token: string }) {
                 const leading = maxVotes > 0 && votes === maxVotes
                 return (
                   <button key={place.id} type="button" onClick={() => setSelected(place.id)} className={`vote-option relative overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition ${selected === place.id ? "is-selected border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15" : "border-[var(--color-border)]"}`}>
-                    {leading && <span className="absolute left-2 top-2 z-10 rounded-full bg-[var(--color-primary)] px-2 py-1 text-[0.62rem] font-black text-white">現在1位</span>}
+                    {leading && <span className="absolute left-2 top-2 z-10 rounded-[2px] bg-[var(--color-primary)] px-2 py-1 text-[0.62rem] font-black text-white">現在1位</span>}
                     <div className="aspect-[1.5/1] bg-[#edf1ee]">{place.image_url && <PlaceImage place={place} alt="" className="spot-photo" />}</div>
                     <div className="p-3">
                       <div className="flex items-start justify-between gap-2"><h2 className="text-sm font-black leading-5">{place.name}</h2>{selected === place.id && <Check className="size-5 shrink-0 text-[var(--color-primary)]" />}</div>

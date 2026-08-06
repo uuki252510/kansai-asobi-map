@@ -51,10 +51,10 @@ export default function PlaceCard({ place, distanceKm }: { place: PlaceWithAvgRa
         </div>
 
         <div className="flex flex-col gap-1 pt-3">
-          <p className="text-xs font-bold text-ink-soft">
+          <p className="text-[11px] font-bold tracking-[0.1em] text-ink-faint">
             {place.city || place.prefecture}
           </p>
-          <h3 className="line-clamp-2 text-base font-black leading-snug text-ink">{place.name}</h3>
+          <h3 className="font-display line-clamp-2 text-[0.9375rem] font-extrabold leading-snug text-ink">{place.name}</h3>
           <p className="flex items-center gap-1 text-xs font-bold text-ink-soft">
             {place.avg_rating !== null && place.review_count > 0 && (
               <>

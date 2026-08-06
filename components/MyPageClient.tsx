@@ -78,7 +78,7 @@ export default function MyPageClient({
                 <button
                   type="button"
                   onClick={() => toggleVisited(place.id)}
-                  className={`mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-full px-4 text-xs font-black transition-all duration-150 active:scale-[0.97] ${
+                  className={`mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-[2px] px-4 text-xs font-black transition-all duration-150 active:scale-[0.97] ${
                     isVisited(place.id) ? "bg-positive text-white" : "border border-line bg-surface text-ink-soft"
                   }`}
                 >
