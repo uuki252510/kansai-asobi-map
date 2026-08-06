@@ -9,13 +9,15 @@ const crowdLabels: Record<string, string> = {
 }
 
 function priceLabel(place: Place) {
+  // 無料は金額(0円)より「無料」と出したほうが伝わる
+  if (place.price_type === "free") return "無料"
   if (place.price_min !== null || place.price_max !== null) {
     const minimum = place.price_min ?? 0
     if (place.price_max !== null && place.price_max !== minimum) return `${minimum.toLocaleString()}〜${place.price_max.toLocaleString()}円`
     return `${minimum.toLocaleString()}円〜`
   }
   if (place.price_note) return place.price_note
-  return place.price_type === "free" ? "無料" : place.price_type === "mixed" ? "一部有料" : "料金を確認"
+  return place.price_type === "mixed" ? "一部有料" : "料金を確認"
 }
 
 export default function PlaceDecisionBrief({ place }: { place: Place }) {
