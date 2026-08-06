@@ -1801,3 +1801,62 @@
     transform: none;
   }
 }
+
+/* ---- エリアマップのマーカー (リストと連動) ---- */
+.mapMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px 7px 9px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(6, 59, 128, 0.35);
+  color: var(--blue-dark);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.mapMarker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--blue);
+  flex-shrink: 0;
+}
+
+.mapMarker small {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  opacity: 0.65;
+}
+
+.mapMarker[data-active],
+.mapMarker:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  z-index: 3;
+}
+
+.mapMarker[data-active] i,
+.mapMarker:hover i {
+  background: #fff;
+}
+
+.mapMarker[data-active] small,
+.mapMarker:hover small {
+  opacity: 0.85;
+}
+
+/* ホバーの色替えはフェードさせない (遷移中の中間色が読めないため) */
+.areaList a,
+.areaList a *,
+.mapMarker,
+.mapMarker * {
+  transition: none;
+}

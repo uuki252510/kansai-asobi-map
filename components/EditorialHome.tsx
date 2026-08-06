@@ -36,12 +36,12 @@ import type { HomeRow } from "@/components/HomeExperience"
 import styles from "./EditorialHome.module.css"
 
 const areas = [
-  { slug: "osaka", prefecture: "大阪府", label: "大阪", number: "01" },
-  { slug: "hyogo", prefecture: "兵庫県", label: "兵庫", number: "02" },
-  { slug: "kyoto", prefecture: "京都府", label: "京都", number: "03" },
-  { slug: "nara", prefecture: "奈良県", label: "奈良", number: "04" },
-  { slug: "shiga", prefecture: "滋賀県", label: "滋賀", number: "05" },
-  { slug: "wakayama", prefecture: "和歌山県", label: "和歌山", number: "06" },
+  { slug: "osaka", prefecture: "大阪府", label: "大阪", number: "01", x: 56, y: 42 },
+  { slug: "hyogo", prefecture: "兵庫県", label: "兵庫", number: "02", x: 30, y: 28 },
+  { slug: "kyoto", prefecture: "京都府", label: "京都", number: "03", x: 60, y: 21 },
+  { slug: "nara", prefecture: "奈良県", label: "奈良", number: "04", x: 66, y: 52 },
+  { slug: "shiga", prefecture: "滋賀県", label: "滋賀", number: "05", x: 81, y: 18 },
+  { slug: "wakayama", prefecture: "和歌山県", label: "和歌山", number: "06", x: 47, y: 74 },
 ] as const
 
 type MoodKey = "relax" | "active" | "kids" | "rain" | "food" | "photo"
@@ -249,6 +249,7 @@ export default function EditorialHome({
   const router = useRouter()
   const [locating, setLocating] = useState(false)
   const [selectedMood, setSelectedMood] = useState<MoodKey>("relax")
+  const [hoveredArea, setHoveredArea] = useState<string | null>(null)
 
   /* 写真が無い施設は地図の代替画像になる。ランキングや特集の「顔」の位置に
      代替画像が並ぶと未完成に見えるため、同スコア帯では写真持ちを先に出す */
@@ -493,7 +494,14 @@ export default function EditorialHome({
           <div className={styles.areaLayout}>
             <div className={styles.areaList}>
               {areas.map((area) => (
-                <Link key={area.slug} href={"/areas/" + area.slug}>
+                <Link
+                  key={area.slug}
+                  href={"/areas/" + area.slug}
+                  onMouseEnter={() => setHoveredArea(area.slug)}
+                  onMouseLeave={() => setHoveredArea(null)}
+                  onFocus={() => setHoveredArea(area.slug)}
+                  onBlur={() => setHoveredArea(null)}
+                >
                   <span>{area.number}</span>
                   <strong>{area.label}</strong>
                   <small>{countsByPrefecture[area.prefecture] ?? 0} SPOTS</small>
@@ -501,11 +509,7 @@ export default function EditorialHome({
                 </Link>
               ))}
             </div>
-            <Link
-              href="/map"
-              className={styles.mapPanel}
-              onClick={() => trackEvent("map_opened", { source: "editorial_home_map" })}
-            >
+            <div className={styles.mapPanel}>
               <Image
                 src="/home/kansai-map-editorial.png"
                 alt="関西6府県のおでかけエリアマップ"
@@ -513,11 +517,32 @@ export default function EditorialHome({
                 sizes="(max-width: 768px) 100vw, 58vw"
                 className={styles.mapImage}
               />
-              <span className={styles.mapCta}>
+              {/* リストと連動する府県マーカー。ホバー中の府県が点灯する */}
+              {areas.map((area) => (
+                <Link
+                  key={area.slug}
+                  href={"/areas/" + area.slug}
+                  className={styles.mapMarker}
+                  style={{ left: area.x + "%", top: area.y + "%" }}
+                  data-active={hoveredArea === area.slug || undefined}
+                  onMouseEnter={() => setHoveredArea(area.slug)}
+                  onMouseLeave={() => setHoveredArea(null)}
+                  aria-label={area.label + "のスポット一覧"}
+                >
+                  <i aria-hidden />
+                  <span>{area.label}</span>
+                  <small>{countsByPrefecture[area.prefecture] ?? 0}</small>
+                </Link>
+              ))}
+              <Link
+                href="/map"
+                className={styles.mapCta}
+                onClick={() => trackEvent("map_opened", { source: "editorial_home_map" })}
+              >
                 MAPで探す
                 <ArrowRight aria-hidden />
-              </span>
-            </Link>
+              </Link>
+            </div>
           </div>
         </section>
 
