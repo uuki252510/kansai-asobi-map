@@ -14,7 +14,7 @@ import type { PlaceWithAvgRating } from "@/lib/places"
 
 function priceLabel(place: PlaceWithAvgRating): string | null {
   if (place.price_type === "free") return "無料"
-  if (place.price_min) return `¥${place.price_min.toLocaleString("ja-JP")}〜`
+  if (place.price_min !== null) return place.price_min === 0 ? "無料" : `¥${place.price_min.toLocaleString("ja-JP")}〜`
   if (place.price_note) return place.price_note.length > 14 ? `${place.price_note.slice(0, 14)}…` : place.price_note
   if (place.price_type === "mixed") return "一部有料"
   return null
@@ -54,7 +54,7 @@ export default function SpotCarousel({
         <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">{title}</h2>
         <div className="flex items-center gap-2">
           {href && (
-            <Link href={href} className="text-sm font-bold text-accent">
+            <Link href={href} className="text-sm font-bold text-accent-strong">
               もっと見る →
             </Link>
           )}

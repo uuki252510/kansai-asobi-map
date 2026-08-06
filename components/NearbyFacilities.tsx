@@ -20,7 +20,7 @@ function drivingMinutes(distanceKm: number): number {
 
 function priceLabel(place: PlaceWithAvgRating): string {
   if (place.price_type === "free") return "無料"
-  if (place.price_min) return `${place.price_min.toLocaleString("ja-JP")}円〜`
+  if (place.price_min !== null) return place.price_min === 0 ? "無料" : `${place.price_min.toLocaleString("ja-JP")}円〜`
   return "有料"
 }
 
@@ -68,7 +68,7 @@ export default async function NearbyFacilities({ place }: { place: Place }) {
           <h2 className="text-xl font-black text-ink">周辺のスポット</h2>
           <p className="mt-1 text-xs font-bold text-ink-soft">{radiusLabel}・近い順</p>
         </div>
-        <Link href={`/spots?prefecture=${encodeURIComponent(place.prefecture)}`} className="text-sm font-bold text-accent">
+        <Link href={`/spots?prefecture=${encodeURIComponent(place.prefecture)}`} className="text-sm font-bold text-accent-strong">
           一覧を見る →
         </Link>
       </div>

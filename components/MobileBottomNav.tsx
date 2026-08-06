@@ -30,7 +30,7 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={`grid min-w-0 justify-items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.6875rem] font-bold transition-colors duration-150 ${
-        active ? "text-accent" : "text-ink-soft"
+        active ? "text-accent-strong" : "text-ink-soft"
       }`}
     >
       <Icon className="size-5 transition-transform duration-150 active:scale-90" strokeWidth={active ? 2.4 : 1.8} aria-hidden />
@@ -60,11 +60,11 @@ export default function MobileBottomNav() {
             href="/today"
             aria-current={isActive("/today", false) ? "page" : undefined}
             className="btn-primary fab-breathe absolute -top-7 grid !min-h-0 size-14 place-items-center rounded-full !p-0 shadow-[var(--shadow-overlay)]"
-            aria-label="今日どこ行く？診断"
+            aria-label="今日どこ？ 診断"
           >
             <Compass className="size-6" aria-hidden />
           </Link>
-          <span className="mt-7 pb-1.5 text-[0.6875rem] font-bold text-ink-soft">今日どこ？</span>
+          <Link href="/today" tabIndex={-1} aria-hidden className="mt-7 pb-1.5 text-[0.6875rem] font-bold text-ink-soft">今日どこ？</Link>
         </div>
 
         {rightItems.map((item) => (

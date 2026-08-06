@@ -125,7 +125,7 @@ export default async function PlaceDetailPage({ params }: Props) {
               {place.rainy_day_ok && <span className="pill"><Umbrella className="size-4" />雨の日OK</span>}
             </div>
             <h1 className="mt-5 text-3xl font-black leading-tight tracking-tight text-ink sm:text-4xl">{place.name}</h1>
-            <p className="mt-3 flex items-center gap-2 text-sm text-ink-soft"><MapPin className="size-4 text-accent" />{place.prefecture} {place.city}</p>
+            <p className="mt-3 flex items-center gap-2 text-sm text-ink-soft"><MapPin className="size-4 text-accent-strong" />{place.prefecture} {place.city}</p>
             {averageRating !== null && (
               <div className="mt-4 flex items-center gap-2 text-sm">
                 <span className="flex gap-0.5" aria-label={`5点中${averageRating.toFixed(1)}点`}>
@@ -152,7 +152,7 @@ export default async function PlaceDetailPage({ params }: Props) {
             <p className="mt-3 whitespace-pre-line text-sm leading-8 text-ink-soft">{whyGo(place)}</p>
             {place.description && place.description.length > 140 && (
               <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-bold text-accent">くわしい紹介を読む</summary>
+                <summary className="cursor-pointer text-sm font-bold text-accent-strong">くわしい紹介を読む</summary>
                 <p className="mt-3 whitespace-pre-line text-sm leading-8 text-ink-soft">{place.description}</p>
               </details>
             )}
@@ -230,10 +230,17 @@ export default async function PlaceDetailPage({ params }: Props) {
       </div>
 
       <div className="place-sticky-action fixed inset-x-0 bottom-[68px] z-30 px-4 py-3 backdrop-blur md:bottom-0">
-        <div className="mx-auto flex max-w-3xl gap-3">
-          <FavoriteButton placeId={place.id} />
-          <VisitToggle placeId={place.id} />
-          <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="btn-primary flex-1">ここに行く<Navigation className="size-4" /></a>
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {/* 375px でラベル付き3ボタンは収まらないため、モバイルはアイコンのみにする */}
+          <div className="sm:hidden flex items-center gap-3">
+            <FavoriteButton placeId={place.id} compact />
+            <VisitToggle placeId={place.id} compact />
+          </div>
+          <div className="hidden sm:flex items-center gap-3">
+            <FavoriteButton placeId={place.id} />
+            <VisitToggle placeId={place.id} />
+          </div>
+          <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="btn-primary flex-1 whitespace-nowrap">ここに行く<Navigation className="size-4" /></a>
         </div>
       </div>
     </main>

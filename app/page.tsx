@@ -1,5 +1,6 @@
 export const revalidate = 600
 
+import type { Metadata } from "next"
 import HomeExperience, { type HomeRow } from "@/components/HomeExperience"
 import { getPublishedArticles } from "@/lib/articles"
 import { getWeekendEvents } from "@/lib/events"
@@ -15,6 +16,11 @@ function uniquePlaces(places: PlaceWithAvgRating[]) {
     seen.add(place.id)
     return true
   })
+}
+
+// canonical は layout に置くと全ページが "/" に正規化されてしまうため、ここで持つ
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
 }
 
 export default async function Home() {

@@ -23,7 +23,7 @@ export default function ArticleList({
       {title && (
         <div className="flex items-end justify-between gap-3">
           <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">{title}</h2>
-          <Link href={href} className="text-sm font-bold text-accent">
+          <Link href={href} className="text-sm font-bold text-accent-strong">
             記事一覧 →
           </Link>
         </div>
@@ -49,7 +49,7 @@ export default function ArticleList({
                     />
                   )}
                 </div>
-                <p className="mt-2 text-xs font-black text-accent">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
+                <p className="mt-2 text-xs font-black text-accent-strong">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
                 <h3 className="mt-0.5 line-clamp-2 text-sm font-black leading-snug text-ink">{article.title}</h3>
                 {article.excerpt && (
                   <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-soft">{article.excerpt}</p>

@@ -39,7 +39,7 @@ export default function ExternalLinksModule({ place }: { place: Place }) {
               <span className="block text-sm font-black text-ink group-hover:text-accent-strong">{row.title}</span>
               <span className="mt-0.5 block text-xs text-ink-soft">{row.purpose}</span>
             </span>
-            <span className="shrink-0 text-sm font-black text-ink-faint transition-transform duration-150 group-hover:translate-x-1 group-hover:text-accent" aria-hidden>
+            <span className="shrink-0 text-sm font-black text-ink-faint transition-transform duration-150 group-hover:translate-x-1 group-hover:text-accent-strong" aria-hidden>
               ↗
             </span>
           </a>

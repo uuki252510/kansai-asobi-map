@@ -51,7 +51,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
         <section className="card-v2 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-black text-ink">
-              <Clock3 className="size-5 text-accent" aria-hidden />営業時間
+              <Clock3 className="size-5 text-accent-strong" aria-hidden />営業時間
             </h2>
             <span className={`rounded-full px-3 py-1.5 text-xs font-black ${stateStyles[status.state]}`}>
               {status.label}
@@ -66,7 +66,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
                 return (
                   <tr key={day} className={isToday ? "bg-accent-soft/40" : undefined}>
                     <th scope="row" className="w-16 py-2 text-left font-bold text-ink-soft">
-                      {DAY_LABELS[day]}{isToday && <span className="ml-1 text-[0.625rem] text-accent">今日</span>}
+                      {DAY_LABELS[day]}{isToday && <span className="ml-1 text-[0.625rem] text-accent-strong">今日</span>}
                     </th>
                     <td className="py-2 font-bold text-ink">
                       {rows.some((row) => row.is_closed)
@@ -102,7 +102,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
       {details.stations.length > 0 && (
         <section className="card-v2 p-5 sm:p-6">
           <h2 className="flex items-center gap-2 text-lg font-black text-ink">
-            <TrainFront className="size-5 text-accent" aria-hidden />電車でのアクセス
+            <TrainFront className="size-5 text-accent-strong" aria-hidden />電車でのアクセス
           </h2>
           <ul className="mt-3 divide-y divide-line">
             {details.stations.map((access, index) => (
@@ -177,7 +177,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
                 className="flex items-center justify-between gap-3 rounded-xl border border-line p-4 transition-colors hover:border-accent">
                 <span>
                   <span className="flex items-center gap-2 text-sm font-black text-ink">
-                    <TicketIcon className="size-4 text-accent" aria-hidden />{ticket.name}
+                    <TicketIcon className="size-4 text-accent-strong" aria-hidden />{ticket.name}
                   </span>
                   {ticket.provider_name && <span className="mt-0.5 block text-xs text-ink-soft">{ticket.provider_name}</span>}
                 </span>
@@ -199,7 +199,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
       {details.events.length > 0 && (
         <section className="card-v2 p-5 sm:p-6">
           <h2 className="flex items-center gap-2 text-lg font-black text-ink">
-            <CalendarDays className="size-5 text-accent" aria-hidden />開催予定のイベント
+            <CalendarDays className="size-5 text-accent-strong" aria-hidden />開催予定のイベント
           </h2>
           <div className="mt-3 space-y-3">
             {details.events.map((event) => (
@@ -211,7 +211,7 @@ export default async function FacilityInfoSections({ place }: { place: Place }) 
                 </p>
                 {event.summary && <p className="mt-1 text-xs leading-6 text-ink-soft">{event.summary}</p>}
                 {event.official_url && (
-                  <a href={event.official_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs font-black text-accent">
+                  <a href={event.official_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs font-black text-accent-strong">
                     イベント詳細 →
                   </a>
                 )}

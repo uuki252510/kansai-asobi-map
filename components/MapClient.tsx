@@ -21,7 +21,7 @@ const transportOptions = [
 
 function pinLabel(place: PlaceWithAvgRating): string {
   if (place.price_type === "free") return "無料"
-  if (place.price_min) return `¥${place.price_min.toLocaleString("ja-JP")}〜`
+  if (place.price_min !== null) return place.price_min === 0 ? "無料" : `¥${place.price_min.toLocaleString("ja-JP")}〜`
   return place.name.length > 6 ? `${place.name.slice(0, 6)}…` : place.name
 }
 
@@ -231,7 +231,7 @@ export default function MapClient({
                     <div className="min-w-0">
                       <p className="truncate font-bold text-ink">
                         {isVisited(place.id) && <Check className="mr-1 inline size-3.5 text-positive" aria-label="行った" />}
-                        {isWant(place.id) && !isVisited(place.id) && <Heart className="mr-1 inline size-3.5 fill-accent text-accent" aria-label="行きたい" />}
+                        {isWant(place.id) && !isVisited(place.id) && <Heart className="mr-1 inline size-3.5 fill-accent text-accent-strong" aria-label="行きたい" />}
                         {place.name}
                       </p>
                       <p className="mt-1 text-xs text-ink-soft">{place.prefecture} {place.city}</p>
@@ -270,7 +270,7 @@ export default function MapClient({
         <section className="card-v2 sticky bottom-[76px] z-20 mx-auto mt-4 max-w-4xl p-4 shadow-[var(--shadow-overlay)] sm:bottom-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold text-accent">選択中</p>
+              <p className="text-xs font-bold text-accent-strong">選択中</p>
               <h2 className="mt-1 font-black text-ink">{selected.name}</h2>
               <p className="mt-1 text-xs text-ink-soft">{selected.prefecture} {selected.city}</p>
             </div>

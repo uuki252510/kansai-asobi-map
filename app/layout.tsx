@@ -30,7 +30,6 @@ export const metadata: Metadata = {
   description:
     "関西6府県のおでかけスポットを、天気・エリア・誰と行くかで探せるポータル。今日行ける場所、雨の日OK、無料スポットもすぐ見つかります。",
   keywords: ["関西", "おでかけ", "遊び場", "デート", "子ども", "雨の日", "今日行ける", "大阪", "兵庫", "京都", "奈良", "滋賀", "和歌山"],
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "ja_JP",
@@ -40,11 +39,8 @@ export const metadata: Metadata = {
       "天気・エリア・気分から、関西のおでかけ先がすぐ決まるポータルサイトです。",
     url: "https://kansai.asobi.nexia-llc.jp",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "デカケル｜関西のおでかけスポットを今日からさがせる",
-    description: "関西のおでかけが、今日決まる。天気とエリアからすぐ探せます。",
-  },
+  // title/description を固定すると全ページ同じ共有カードになるため card 種別のみ指定
+  twitter: { card: "summary_large_image" },
   // icon.tsx / apple-icon.tsx (file convention) が自動でリンクされる
 }
 

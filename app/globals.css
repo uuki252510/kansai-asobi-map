@@ -51,7 +51,7 @@
   /* ---- Neutral (5段のみ / 湖のインク×朝もや) ---- */
   --ink: #12383c;
   --ink-soft: #4c7276;
-  --ink-faint: #8fb0b2;
+  --ink-faint: #6b8b8d; /* 白背景で4.5:1。免責文・補足が読める最低線 */
   --line: #d9ecec;
   --canvas: #f2f9f8;
   --surface: #ffffff;
@@ -62,7 +62,7 @@
   --accent-soft: #dff5ec;
 
   /* ---- Semantic (情報色。装飾に使わない) ---- */
-  --positive: #0b8a63;
+  --positive: #0a7a58;
   --positive-soft: #def3ea;
   --caution: #8a6410;
   --caution-soft: #fdf3d9;
@@ -168,12 +168,8 @@
     touch-action: manipulation;
   }
 
-  button:focus-visible,
-  a:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible {
-    outline: 3px solid rgb(12 166 120 / 40%);
+  :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--accent-strong);
     outline-offset: 2px;
   }
 
@@ -338,7 +334,8 @@
     min-height: 48px;
     padding-inline: 24px;
     border-radius: 999px;
-    background: var(--accent);
+    /* 白文字とのコントラスト: accent は 3.1:1 しかないため濃い方を地にする */
+    background: var(--accent-strong);
     color: #fff;
     font-size: 0.9375rem;
     font-weight: 900;
@@ -347,7 +344,7 @@
   }
 
   .btn-primary:hover {
-    background: var(--accent-strong);
+    background: var(--accent);
   }
 
   .btn-primary:active {
@@ -702,6 +699,65 @@
   .article-body ul { margin-block: 1.2em; padding-left: 1.3em; list-style: disc; }
   .article-body li { margin-block: 0.4em; }
   .article-body a { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* スポット詳細の公開写真 (PlaceEnrichmentSection)。旧refresh.css から移植漏れだった */
+  .place-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  @media (min-width: 640px) {
+    .place-photo-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .place-photo-grid .place-photo-tile.is-primary {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+  }
+
+  .place-photo-tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--muted);
+  }
+
+  .place-photo-credit {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 10px 10px 8px;
+    background: linear-gradient(transparent, rgb(0 0 0 / 55%));
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .cargo-info-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+
+  /* 本文内に埋め込むスポットカードのボタンはリンク色ルールから守る */
+  .article-body :is(.btn-primary, .btn-secondary) {
+    color: #fff;
+    text-decoration: none;
+  }
+  .article-body .btn-secondary {
+    color: var(--ink);
+  }
   .article-body strong { font-weight: 900; }
   .article-body hr { margin-block: 2em; border: 0; border-top: 1px solid var(--line); }
   .article-body figure { margin-block: 1.6em; }
@@ -1002,11 +1058,6 @@
   }
   .place-hero-copy {
     background: var(--surface);
-  }
-  .place-photo-tile {
-    overflow: hidden;
-    border-radius: var(--radius-md);
-    background: var(--muted);
   }
   .place-sticky-action {
     border-top: 1px solid var(--line);

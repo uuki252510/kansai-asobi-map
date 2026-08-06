@@ -2,11 +2,14 @@ import type { MetadataRoute } from "next"
 import { AREAS } from "@/lib/areas"
 import { getPublishedArticles } from "@/lib/articles"
 import { getPublishedEvents } from "@/lib/events"
-import { getCategories, getTags } from "@/lib/facilities"
+import { getCategories, getPlaceIdsForCategory, getTags } from "@/lib/facilities"
 import { getPublishedPlaceIndex } from "@/lib/places"
 import { TIMEFRAMES } from "@/lib/timeframe"
 
 const origin = "https://kansai.asobi.nexia-llc.jp"
+
+// 新しい施設・記事・イベントがデプロイ無しで載るように定期再生成する
+export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [places, articles, categories, tags, events] = await Promise.all([
@@ -16,6 +19,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getTags().catch(() => []),
     getPublishedEvents({ limit: 500 }).catch(() => []),
   ])
+  // カテゴリページは5件未満だと noindex なので sitemap からも除く
+  const categoryCounts = await Promise.all(
+    categories.map(async (category) => ({ category, count: (await getPlaceIdsForCategory(category.id).catch(() => [])).length })),
+  )
+  const indexableCategories = categoryCounts.filter((entry) => entry.count >= 5).map((entry) => entry.category)
   return [
     { url: origin, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
     { url: `${origin}/spots`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
@@ -54,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     })),
     // カテゴリー/タグのSEOページ (タグは indexable のみ)
-    ...categories.map((category) => ({
+    ...indexableCategories.map((category) => ({
       url: `${origin}/facilities/category/${category.slug}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,

@@ -96,7 +96,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <article className="mx-auto mt-4 max-w-3xl">
-        <p className="text-xs font-black text-accent">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
+        <p className="text-xs font-black text-accent-strong">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
         <h1 className="mt-1.5 font-display text-2xl font-black leading-tight tracking-tight text-ink sm:text-4xl">
           {article.title}
         </h1>

@@ -1,4 +1,4 @@
-import { permanentRedirect } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { AREA_SLUGS } from "@/lib/places"
 
 /**
@@ -9,5 +9,7 @@ import { AREA_SLUGS } from "@/lib/places"
 export default async function SpotIdentifierPage({ params }: { params: Promise<{ identifier: string }> }) {
   const { identifier } = await params
   if (AREA_SLUGS[identifier]) permanentRedirect(`/areas/${identifier}`)
-  permanentRedirect(`/places/${identifier}`)
+  // 任意文字列を /places へ301すると 301→404 の連鎖になる。UUIDだけ転送する
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier)) permanentRedirect(`/places/${identifier}`)
+  notFound()
 }

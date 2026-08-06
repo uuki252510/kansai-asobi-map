@@ -237,7 +237,7 @@ export default function HomeExperience({
       <Reveal as="section">
         <div className="flex items-end justify-between gap-3">
           <h2 className="text-lg font-black text-ink sm:text-xl">エリアからさがす</h2>
-          <Link href="/areas" className="text-sm font-bold text-accent">
+          <Link href="/areas" className="text-sm font-bold text-accent-strong">
             すべてのエリア →
           </Link>
         </div>
@@ -267,7 +267,7 @@ export default function HomeExperience({
         <Reveal as="section">
           <div className="flex items-end justify-between gap-3">
             <h2 className="font-display text-lg font-black tracking-tight text-ink sm:text-xl">今週末のイベント</h2>
-            <Link href="/events" className="text-sm font-bold text-accent">
+            <Link href="/events" className="text-sm font-bold text-accent-strong">
               イベント一覧 →
             </Link>
           </div>
