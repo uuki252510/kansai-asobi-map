@@ -7,6 +7,7 @@ type OpenMeteoResponse = {
     temperature_2m_max?: number[]
     temperature_2m_min?: number[]
     precipitation_probability_max?: number[]
+    weather_code?: number[]
   }
   hourly?: { time?: string[]; precipitation_probability?: number[] }
 }
@@ -43,14 +44,18 @@ function rainTimeLabel(data: OpenMeteoResponse) {
   return `${firstHour}時〜${lastHour}時ごろ`
 }
 
-export async function getWeatherSnapshot(latitude = 34.6901, longitude = 135.1955) {
+/**
+ * 天気を取得する。dayOffset=0 は今日 (現在の実況)、1 は明日 (日別予報)。
+ * 「明日」ページで現在の実況を「予報」と言って出さないための区別。
+ */
+export async function getWeatherSnapshot(latitude = 34.6901, longitude = 135.1955, dayOffset: 0 | 1 = 0) {
   const query = new URLSearchParams({
     latitude: latitude.toFixed(4),
     longitude: longitude.toFixed(4),
     current: "temperature_2m,weather_code",
-    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code",
     hourly: "precipitation_probability",
-    forecast_days: "1",
+    forecast_days: String(dayOffset + 1),
     timezone: "Asia/Tokyo",
   })
   try {
@@ -60,16 +65,18 @@ export async function getWeatherSnapshot(latitude = 34.6901, longitude = 135.195
     })
     if (!response.ok) return EMPTY_WEATHER
     const data = (await response.json()) as OpenMeteoResponse
-    const weather = weatherLabel(data.current?.weather_code)
+    // 明日は実況が存在しないので日別予報の weather_code を使う
+    const code = dayOffset === 0 ? data.current?.weather_code : data.daily?.weather_code?.[dayOffset]
+    const weather = weatherLabel(code)
     return {
       available: true,
       condition: weather.condition,
       conditionLabel: weather.label,
-      temperature: data.current?.temperature_2m ?? null,
-      high: data.daily?.temperature_2m_max?.[0] ?? null,
-      low: data.daily?.temperature_2m_min?.[0] ?? null,
-      precipitationProbability: data.daily?.precipitation_probability_max?.[0] ?? null,
-      rainTimeLabel: rainTimeLabel(data),
+      temperature: dayOffset === 0 ? data.current?.temperature_2m ?? null : null,
+      high: data.daily?.temperature_2m_max?.[dayOffset] ?? null,
+      low: data.daily?.temperature_2m_min?.[dayOffset] ?? null,
+      precipitationProbability: data.daily?.precipitation_probability_max?.[dayOffset] ?? null,
+      rainTimeLabel: dayOffset === 0 ? rainTimeLabel(data) : null,
     } satisfies WeatherSnapshot
   } catch {
     return EMPTY_WEATHER

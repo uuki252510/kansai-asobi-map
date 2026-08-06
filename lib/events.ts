@@ -49,6 +49,7 @@ export interface PublicEvent {
   start_at: string
   end_at: string
   start_time_unknown: boolean
+  status: "published" | "cancelled"
   highlight_label: string | null
   highlight_value: string | null
   event_category: EventCategory | null
@@ -67,7 +68,7 @@ export interface PublicEvent {
 }
 
 const COLUMNS =
-  "id,slug,place_id,name,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,start_time_unknown,highlight_label,highlight_value,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
+  "id,slug,place_id,name,status,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,start_time_unknown,highlight_label,highlight_value,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
 
 export function eventCoverUrl(event: Pick<PublicEvent, "cover_storage_path" | "cover_external_url">): string | null {
   if (event.cover_storage_path) return storagePublicUrl(event.cover_storage_path)
@@ -150,7 +151,8 @@ export async function getEventByIdOrSlug(identifier: string): Promise<PublicEven
         .from("events" as never)
         .select(COLUMNS)
         .eq(isUuid ? "id" : "slug", identifier)
-        .eq("status", "published")
+        // 中止イベントも表示する (中止の告知ができないと行く予定だった人が困る)
+        .in("status", ["published", "cancelled"])
         .maybeSingle()
         .then((result) => ({ data: result.data as unknown as PublicEvent | null, error: result.error })),
     null,

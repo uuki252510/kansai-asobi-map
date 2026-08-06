@@ -34,8 +34,8 @@ export default async function TimeframePage({ params }: { params: Promise<{ time
 
   const [allPlaces, weather] = await Promise.all([
     getAllPlaces().catch(() => []),
-    // today/tomorrow は天気連動。weekend/this-month は現況を参考表示に留める
-    getWeatherSnapshot().catch(() => null),
+    // today は現況、tomorrow は明日の日別予報。weekend/this-month は天気を出さない
+    getWeatherSnapshot(undefined, undefined, slug === "tomorrow" ? 1 : 0).catch(() => null),
   ])
 
   const weatherAware = slug === "today" || slug === "tomorrow"

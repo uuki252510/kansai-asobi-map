@@ -91,7 +91,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     // 時刻未確認のときは日付だけ出す。schema.org は Date でも DateTime でもよい
     startDate: event.start_time_unknown ? isoDate(event.start_at) : event.start_at,
     endDate: event.start_time_unknown ? isoDate(event.end_at) : event.end_at,
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus: event.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     // イメージ写真は構造化データに載せない (その大会の写真ではないため)
     image: isStockPhoto ? undefined : cover ?? undefined,
@@ -148,8 +148,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <article className="mx-auto mt-4 max-w-3xl">
         <div className="flex flex-wrap items-center gap-2">
-          {ended && <span className="rounded-full bg-muted px-3 py-1 text-xs font-black text-ink-soft">終了しました</span>}
-          {ongoing && <span className="rounded-full bg-positive-soft px-3 py-1 text-xs font-black text-positive">開催中</span>}
+          {event.status === "cancelled" && <span className="rounded-full bg-caution-soft px-3 py-1 text-xs font-black text-caution">開催中止</span>}
+          {event.status !== "cancelled" && ended && <span className="rounded-full bg-muted px-3 py-1 text-xs font-black text-ink-soft">終了しました</span>}
+          {event.status !== "cancelled" && ongoing && <span className="rounded-full bg-positive-soft px-3 py-1 text-xs font-black text-positive">開催中</span>}
           {event.event_category && (
             <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-black text-accent-strong">
               {EVENT_CATEGORY_LABELS[event.event_category]}

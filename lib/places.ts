@@ -168,6 +168,24 @@ export async function getPlacesByIds(ids: string[]): Promise<PlaceWithAvgRating[
     .sort((left, right) => (order.get(left.id) ?? 999) - (order.get(right.id) ?? 999))
 }
 
+/**
+ * 重複統合で非公開化した施設の統合先を返す。
+ * 旧URLを404にせず、統合先へ301するために使う。
+ */
+export async function getMergedTarget(id: string): Promise<string | null> {
+  try {
+    // places の RLS は公開行のみ select 可のため、専用ビュー経由で読む
+    const { data } = await supabase
+      .from("place_redirects" as never)
+      .select("merged_into_place_id")
+      .eq("id", id)
+      .maybeSingle()
+    return (data as { merged_into_place_id: string | null } | null)?.merged_into_place_id ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function getPlaceById(id: string): Promise<(Place & { reviews: Review[] }) | null> {
   const { data, error } = await supabase
     .from("places")

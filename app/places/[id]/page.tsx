@@ -3,7 +3,7 @@ export const revalidate = 3600
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import {
   Accessibility,
   ArrowLeft,
@@ -34,7 +34,7 @@ import PlaceImage from "@/components/PlaceImage"
 import SpotDetailTracker from "@/components/SpotDetailTracker"
 import VisitToggle from "@/components/VisitToggle"
 import { whatIsIt, whyGo } from "@/lib/place-editorial"
-import { getPlaceById } from "@/lib/places"
+import { getPlaceById, getMergedTarget } from "@/lib/places"
 import { breadcrumbJsonLd, touristAttractionJsonLd } from "@/lib/structured-data"
 
 interface Props {
@@ -74,7 +74,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PlaceDetailPage({ params }: Props) {
   const { id } = await params
   const place = await getPlaceById(id)
-  if (!place) notFound()
+  if (!place) {
+    // 重複統合で archived にした施設は、統合先へ301して被リンクを引き継ぐ
+    const target = await getMergedTarget(id)
+    if (target) permanentRedirect(`/places/${target}`)
+    notFound()
+  }
 
   const averageRating = place.reviews.length
     ? place.reviews.reduce((sum, review) => sum + review.rating, 0) / place.reviews.length
