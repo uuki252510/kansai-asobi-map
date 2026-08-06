@@ -49,7 +49,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         { name: "カテゴリー", path: "/spots" },
         { name: category.name, path: `/facilities/category/${category.slug}` },
       ])) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(`関西の${category.name}`, places.slice(0, 24))) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(`関西の${category.name}`, places.slice(0, 24))).replace(/</g, "<") }} />
 
       <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
         関西の{category.name}

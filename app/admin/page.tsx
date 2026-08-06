@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createServerClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/admin-guard"
 import AdminClient from "./AdminClient"
 import type { Place } from "@/lib/supabase/database.types"
 import { normalizePlace } from "@/lib/places"
@@ -20,6 +21,7 @@ async function LogoutButton() {
 }
 
 export default async function AdminPage() {
+  await requireAdmin()
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from("places")

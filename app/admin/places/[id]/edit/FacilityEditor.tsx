@@ -277,7 +277,7 @@ export default function FacilityEditor({ placeId }: { placeId: string }) {
                             </button>
                           </div>
                         ))}
-                        <button type="button" className="text-xs font-bold text-accent"
+                        <button type="button" className="text-xs font-bold text-accent-strong"
                           onClick={() => setHours((current) => current.map((entry, index) => index === hourIndex ? { ...entry, slots: [...entry.slots, { opening_time: "13:00", closing_time: "17:00", last_entry_time: null }] } : entry))}>
                           + 時間帯を追加（午前/午後など）
                         </button>
@@ -376,7 +376,7 @@ export default function FacilityEditor({ placeId }: { placeId: string }) {
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="text-xs font-bold text-accent"
+                  <button type="button" className="text-xs font-bold text-accent-strong"
                     onClick={() => setPlans((current) => current.map((entry, i) => i === planIndex ? { ...entry, tiers: [...entry.tiers, { tier: "elementary", price: 0, is_free: false, conditions: null }] } : entry))}>
                     + 料金区分を追加
                   </button>

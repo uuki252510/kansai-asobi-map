@@ -62,7 +62,7 @@ export default async function RankingPage({ searchParams }: { searchParams: Sear
     <main className="page-shell py-6 sm:py-10">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(title, ranked.map((entry) => entry.place))) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(title, ranked.map((entry) => entry.place))).replace(/</g, "<") }}
       />
 
       <h1 className="font-display text-2xl font-black tracking-tight text-ink sm:text-3xl">{title}</h1>

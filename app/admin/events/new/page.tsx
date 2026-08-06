@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { requireAdmin } from "@/lib/admin-guard"
 import EventForm from "../EventForm"
 
-export default function NewEventPage() {
+export default async function NewEventPage() {
+  await requireAdmin()
   return (
     <main className="page-shell py-8">
       <div className="mb-6 flex items-center justify-between gap-4">

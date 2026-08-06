@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { checkRateLimit, clientKey } from "@/lib/rate-limit"
 import { getPlacesByIds } from "@/lib/places"
 
 type VotePayload = {
@@ -60,6 +61,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limit = checkRateLimit(clientKey(request, "votes"), 20, 60 * 60_000)
+  if (!limit.ok) return NextResponse.json({ error: "リクエストが多すぎます" }, { status: 429 })
   let payload: VotePayload
   try {
     payload = (await request.json()) as VotePayload
@@ -70,14 +73,15 @@ export async function POST(request: Request) {
   try {
     const supabase = createServerClient()
     if (payload.action === "create") {
-      const spotIds = [...new Set(payload.spot_ids ?? [])].slice(0, 5)
+      const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      const spotIds = [...new Set(payload.spot_ids ?? [])].filter((id) => typeof id === "string" && UUID.test(id)).slice(0, 5)
       if (spotIds.length < 2) return NextResponse.json({ error: "候補は2〜5件必要です" }, { status: 400 })
       const { data: group, error } = await supabase
         .from("share_groups")
         .insert({
           owner_user_id: null,
           title: payload.title?.slice(0, 80) || "週末どこに行く？",
-          closes_at: payload.closes_at ?? null,
+          closes_at: payload.closes_at && !Number.isNaN(new Date(payload.closes_at).getTime()) ? payload.closes_at : null,
         })
         .select("id, public_token")
         .single()

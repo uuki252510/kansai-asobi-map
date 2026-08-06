@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { requireAdmin } from "@/lib/admin-guard"
 import ArticleForm from "../ArticleForm"
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin()
   const { id } = await params
   return (
     <main className="page-shell py-8">

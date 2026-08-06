@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { checkRateLimit, clientKey } from "@/lib/rate-limit"
 
 const allowedEvents = new Set([
   "recommendation_started",
@@ -17,6 +18,8 @@ const allowedEvents = new Set([
 ])
 
 export async function POST(request: Request) {
+  const limit = checkRateLimit(clientKey(request, "analytics"), 60, 60_000)
+  if (!limit.ok) return NextResponse.json({ error: "too many requests" }, { status: 429 })
   try {
     const payload = (await request.json()) as {
       event_name?: string

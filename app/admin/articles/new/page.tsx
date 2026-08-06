@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { requireAdmin } from "@/lib/admin-guard"
 import ArticleForm from "../ArticleForm"
 
-export default function NewArticlePage() {
+export default async function NewArticlePage() {
+  await requireAdmin()
   return (
     <main className="page-shell py-8">
       <div className="mb-6 flex items-center justify-between gap-4">

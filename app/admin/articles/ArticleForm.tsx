@@ -228,7 +228,7 @@ export default function ArticleForm({ articleId }: { articleId?: string }) {
           <div>
             <div className="flex items-center justify-between">
               <label htmlFor="article-body" className="text-sm font-black text-ink">本文</label>
-              <button type="button" className="text-xs font-bold text-accent" onClick={() => setPreview((value) => !value)}>
+              <button type="button" className="text-xs font-bold text-accent-strong" onClick={() => setPreview((value) => !value)}>
                 {preview ? "編集に戻る" : "プレビュー"}
               </button>
             </div>
@@ -294,7 +294,7 @@ export default function ArticleForm({ articleId }: { articleId?: string }) {
                     </button>
                     <button
                       type="button"
-                      className="text-xs font-bold text-accent"
+                      className="text-xs font-bold text-accent-strong"
                       onClick={() => insertSpotDirective(place)}
                     >
                       ↵本文へ

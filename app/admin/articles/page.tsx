@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import { requireAdmin } from "@/lib/admin-guard"
 import { Plus } from "lucide-react"
 import { ARTICLE_TYPE_LABELS, type ArticleType } from "@/lib/articles"
 import { createServiceRoleClient } from "@/lib/supabase/service"
@@ -24,6 +25,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = { published: "公開中", draft: "下書き", archived: "アーカイブ" }
 
 export default async function AdminArticlesPage() {
+  await requireAdmin()
   let articles: ArticleRow[] = []
   let loadError: string | null = null
   try {
@@ -79,7 +81,7 @@ export default async function AdminArticlesPage() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-black text-ink">
-                  {article.is_featured && <span className="mr-1.5 text-accent">★</span>}
+                  {article.is_featured && <span className="mr-1.5 text-accent-strong">★</span>}
                   {article.title}
                 </span>
                 <span className="mt-0.5 block truncate text-xs text-ink-soft">

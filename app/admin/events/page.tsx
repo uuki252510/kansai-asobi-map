@@ -92,7 +92,7 @@ export default async function AdminEventsPage() {
                 {ended && <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-bold text-ink-faint">終了</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-black text-ink">
-                    {event.is_featured && <span className="mr-1.5 text-accent">★</span>}
+                    {event.is_featured && <span className="mr-1.5 text-accent-strong">★</span>}
                     {event.name}
                   </span>
                   <span className="mt-0.5 block truncate text-xs text-ink-soft">

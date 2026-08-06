@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const lat = parseFloat(searchParams.get('lat') ?? '')
   const lng = parseFloat(searchParams.get('lng') ?? '')
-  const limit = parseInt(searchParams.get('limit') ?? '10')
+  const rawLimit = parseInt(searchParams.get('limit') ?? '10')
+  const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 10, 1), 50)
 
   if (isNaN(lat) || isNaN(lng)) {
     return NextResponse.json({ error: 'lat/lng required' }, { status: 400 })

@@ -37,7 +37,7 @@ export default async function AreasPage() {
                 <p className="text-base font-black text-ink">{area.name}</p>
                 <p className="mt-0.5 text-xs font-bold text-ink-soft">{count}件のスポット</p>
               </div>
-              <MapPin className="size-5 text-accent" aria-hidden />
+              <MapPin className="size-5 text-accent-strong" aria-hidden />
             </Link>
           )
         })}
@@ -51,7 +51,7 @@ export default async function AreasPage() {
             <Link key={area.slug} href={`/areas/${area.slug}`} className="card-v2 group px-5 py-4 transition-transform duration-150 active:scale-[0.98]">
               <p className="text-base font-black text-ink">{area.name}</p>
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-soft">{area.description}</p>
-              <p className="mt-2 text-xs font-black text-accent">{count}件のスポット →</p>
+              <p className="mt-2 text-xs font-black text-accent-strong">{count}件のスポット →</p>
             </Link>
           )
         })}

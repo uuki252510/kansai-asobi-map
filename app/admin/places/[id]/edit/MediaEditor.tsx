@@ -194,7 +194,7 @@ export default function MediaEditor({ placeId }: { placeId: string }) {
                 </button>
                 <button
                   type="button"
-                  className={`btn-ghost !min-h-9 !px-2 ${item.is_primary ? "text-accent" : ""}`}
+                  className={`btn-ghost !min-h-9 !px-2 ${item.is_primary ? "text-accent-strong" : ""}`}
                   aria-label="メイン画像に設定"
                   aria-pressed={item.is_primary}
                   onClick={() => setPrimary(item.id)}

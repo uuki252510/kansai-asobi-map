@@ -58,8 +58,8 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main className="page-shell py-6 sm:py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, "<") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList).replace(/</g, "<") }} />
 
       <nav aria-label="パンくず" className="text-xs font-bold text-ink-soft">
         <Link href="/" className="hover:text-ink">ホーム</Link>

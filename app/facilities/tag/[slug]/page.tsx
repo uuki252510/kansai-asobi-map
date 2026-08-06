@@ -48,7 +48,7 @@ export default async function TagPage({ params }: { params: Promise<{ slug: stri
         { name: "タグ", path: "/spots" },
         { name: tag.name, path: `/facilities/tag/${tag.slug}` },
       ])) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(`${tag.name}の関西おでかけスポット`, places.slice(0, 24))) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd(`${tag.name}の関西おでかけスポット`, places.slice(0, 24))).replace(/</g, "<") }} />
 
       <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
         {tag.name}

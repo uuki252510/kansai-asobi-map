@@ -1,3 +1,5 @@
+import { timingSafeEqual } from 'node:crypto'
+
 export const ADMIN_COOKIE = 'admin_session'
 
 /**
@@ -7,7 +9,10 @@ export const ADMIN_COOKIE = 'admin_session'
 export function isValidAdminToken(token: string | undefined | null): boolean {
   const expected = process.env.ADMIN_TOKEN
   if (!expected || !token) return false
-  return token === expected
+  const bufferA = Buffer.from(token)
+  const bufferB = Buffer.from(expected)
+  if (bufferA.length !== bufferB.length) return false
+  return timingSafeEqual(bufferA, bufferB)
 }
 
 export function verifyAdminRequest(request: Request): boolean {
