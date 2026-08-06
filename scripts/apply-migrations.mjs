@@ -50,7 +50,10 @@ console.log(`SUPABASE_DB_URL/DATABASE_URL: ${dbUrl ? "あり" : "なし"} ← CL
 const migrationsDirectory = join(projectRoot, "supabase", "migrations")
 const files = readdirSync(migrationsDirectory)
   .filter((name) => name.endsWith(".sql"))
-  .filter((name) => (onlyArg ? name.includes(onlyArg.split("=")[1]) : name.startsWith("20260805")))
+  // 既定は日付プレフィックス付きの全migration。かつては "20260805" 決め打ちで、
+  // それ以降に足したファイルが黙って無視されていた。
+  // 中身は全て再実行できる前提 (if not exists / drop→create) で書く。
+  .filter((name) => (onlyArg ? name.includes(onlyArg.split("=")[1]) : /^\d{14}_/.test(name)))
   .sort()
 
 console.log(`\n=== 対象migration (${files.length}件) ===`)
@@ -93,6 +96,32 @@ async function runSql(sql) {
   return text
 }
 
+/**
+ * 適用済みmigrationの台帳。これが無かったため「20260805で始まるものだけ」と
+ * 決め打ちしており、以降に足したファイルが黙って無視されていた。
+ *
+ * 台帳を新規作成したときは、既に適用済みの全ファイルを記録するだけにする
+ * (baseline)。create policy のように再実行できない文が含まれているため、
+ * 過去分を流し直すと必ず失敗する。
+ */
+async function loadApplied(allFiles) {
+  await runSql(`
+    create table if not exists public.schema_migrations (
+      name text primary key,
+      applied_at timestamptz not null default now()
+    );
+  `)
+  const raw = await runSql("select name from public.schema_migrations;")
+  const rows = JSON.parse(raw)
+  if (rows.length === 0 && allFiles.length > 0) {
+    const values = allFiles.map((name) => `('${name.replace(/'/g, "''")}')`).join(",")
+    await runSql(`insert into public.schema_migrations (name) values ${values} on conflict do nothing;`)
+    console.log(`\n台帳を作成し、既存 ${allFiles.length} 件を適用済みとして記録しました (baseline)`)
+    return new Set(allFiles)
+  }
+  return new Set(rows.map((row) => row.name))
+}
+
 async function main() {
   if (!apply) {
     console.log("\n(確認モード) 実際に適用するには --apply を付けてください。")
@@ -107,18 +136,28 @@ async function main() {
     return
   }
 
+  // --only 指定時は台帳を無視して名指しのものを流す (作り直したいとき用)
+  const alreadyApplied = onlyArg ? new Set() : await loadApplied(files)
+  const pending = files.filter((name) => !alreadyApplied.has(name))
+  if (pending.length === 0) {
+    console.log("\n未適用のmigrationはありません")
+    return
+  }
+  console.log(`\n=== 未適用 ${pending.length}件 ===`)
+
   let applied = 0
-  for (const file of files) {
+  for (const file of pending) {
     const sql = readFileSync(join(migrationsDirectory, file), "utf8")
     process.stdout.write(`applying ${file} ... `)
     try {
       await runSql(sql)
+      await runSql(`insert into public.schema_migrations (name) values ('${file.replace(/'/g, "''")}') on conflict do nothing;`)
       console.log("OK")
       applied += 1
     } catch (error) {
       console.log("FAILED")
       console.error(`  ${error.message}`)
-      console.error("\n中断しました。全migrationは冪等なので、原因を直して再実行できます。")
+      console.error("\n中断しました。失敗したファイルは台帳に記録していないので、原因を直して再実行できます。")
       process.exit(1)
     }
   }

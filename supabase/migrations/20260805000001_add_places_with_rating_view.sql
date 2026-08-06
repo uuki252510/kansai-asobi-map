@@ -2,7 +2,12 @@
 -- rows to the app on every list query.
 -- security_invoker keeps the caller's RLS (anon sees published places only).
 
-create or replace view public.places_with_rating
+-- p.* を使っているため、places に列が増えると create or replace が
+-- 「列名を変更できない」で落ちる。再実行できるよう作り直しにする。
+-- ビューは実データを持たないので落としても失われるものはない。
+drop view if exists public.places_with_rating;
+
+create view public.places_with_rating
 with (security_invoker = true) as
 select
   p.*,
