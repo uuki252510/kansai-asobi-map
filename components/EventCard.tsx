@@ -20,6 +20,8 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
   const isOngoing = new Date(event.start_at) <= new Date() && new Date(event.end_at) >= new Date()
   const periodLabel = eventPeriodLabel(event)
   const badgeDate = `${start.getMonth() + 1}/${start.getDate()}`
+  // その大会の実写真ではなく、PD/CC0のイメージ写真 (scripts/fetch-event-covers.mjs)
+  const isStockPhoto = Boolean(event.cover_storage_path?.startsWith("event-covers/stock-"))
 
   return (
     <Link
@@ -43,6 +45,11 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
         )}
         {isOngoing && <span className="badge-photo is-positive absolute left-2 top-2">開催中</span>}
         {!isOngoing && event.is_free && <span className="badge-photo absolute left-2 top-2">入場無料</span>}
+        {cover && isStockPhoto && (
+          <span className="absolute bottom-2 right-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold text-white/90">
+            写真はイメージ
+          </span>
+        )}
       </div>
 
       <p className="mt-2 text-xs font-black text-accent">

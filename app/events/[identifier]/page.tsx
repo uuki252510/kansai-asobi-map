@@ -44,7 +44,10 @@ export async function generateMetadata({ params }: { params: Promise<{ identifie
   const description =
     event.summary ??
     `${event.venue_name ?? event.prefecture ?? "関西"}で開催される「${event.name}」の開催日時・場所・料金をまとめています。`
-  const cover = eventCoverUrl(event)
+  // イメージ写真 (stock-) はOGPに出さない。検索結果やSNSで
+  // 「その大会の写真」として流通してしまうため
+  const isStockPhoto = Boolean(event.cover_storage_path?.startsWith("event-covers/stock-"))
+  const cover = isStockPhoto ? null : eventCoverUrl(event)
   return {
     title: event.name,
     description,
@@ -65,6 +68,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const relatedPlaces = event.place_id ? await getPlacesByIds([event.place_id]).catch(() => []) : []
   const cover = eventCoverUrl(event)
+  const isStockPhoto = Boolean(event.cover_storage_path?.startsWith("event-covers/stock-"))
   const price = eventPriceLabel(event)
   const now = new Date()
   const ended = new Date(event.end_at) < now
@@ -86,7 +90,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     endDate: event.start_time_unknown ? isoDate(event.end_at) : event.end_at,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    image: cover ?? undefined,
+    // イメージ写真は構造化データに載せない (その大会の写真ではないため)
+    image: isStockPhoto ? undefined : cover ?? undefined,
     url: `${SITE_URL}/events/${event.slug ?? event.id}`,
   }
   if (event.venue_name || event.address) {
@@ -147,9 +152,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         </h1>
 
         {cover && (
-          <div className="mt-5 aspect-[16/9] overflow-hidden rounded-2xl bg-muted">
+          <div className="relative mt-5 aspect-[16/9] overflow-hidden rounded-2xl bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cover} alt={event.name} width={1200} height={675} className="size-full object-cover" />
+            <img
+              src={cover}
+              alt={isStockPhoto ? "花火のイメージ写真" : event.name}
+              width={1200}
+              height={675}
+              className="size-full object-cover"
+            />
+            {isStockPhoto && (
+              <span className="absolute bottom-3 right-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white/90">
+                写真はイメージ
+              </span>
+            )}
           </div>
         )}
 
