@@ -1,7 +1,8 @@
 export const revalidate = 600
 
 import type { Metadata } from "next"
-import HomeExperience, { type HomeRow } from "@/components/HomeExperience"
+import EditorialHome from "@/components/EditorialHome"
+import { type HomeRow } from "@/components/HomeExperience"
 import { getPublishedArticles } from "@/lib/articles"
 import { getWeekendEvents } from "@/lib/events"
 import { getAllPlaces, getRecommendedPlaces, type PlaceWithAvgRating } from "@/lib/places"
@@ -94,7 +95,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <HomeExperience
+      <EditorialHome
         spots={spots}
         totalSpotCount={totalSpotCount}
         countsByPrefecture={countsByPrefecture}

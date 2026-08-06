@@ -39,6 +39,7 @@ test.describe("管理画面", () => {
     const title = `E2E自動テスト記事 ${slug}`
 
     await page.goto("/admin/articles/new")
+    await page.waitForLoadState("networkidle")
     await page.getByLabel("タイトル *").fill(title)
     await page.getByLabel(/URLスラッグ/).fill(slug)
     await page.getByLabel(/リード文/).fill("Playwrightで作成した記事です。")
@@ -67,6 +68,7 @@ test.describe("管理画面", () => {
 
   test("バリデーションエラーが表示される", async ({ page }) => {
     await page.goto("/admin/articles/new")
+    await page.waitForLoadState("networkidle")
     await page.getByLabel("タイトル *").fill("スラッグ不正テスト")
     await page.getByLabel(/URLスラッグ/).fill("日本語スラッグ")
     await page.getByRole("button", { name: "記事を作成" }).click()

@@ -53,6 +53,7 @@ export function normalizePlace(row: PlaceRecord): Place {
     barrier_free: row.barrier_free ?? null,
     pet_friendly: row.pet_friendly ?? null,
     meal_available: row.meal_available ?? null,
+    image_storage_path: row.image_storage_path ?? null,
     last_verified_at: row.last_verified_at ?? null,
     updated_at: row.updated_at ?? row.created_at,
   }

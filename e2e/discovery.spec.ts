@@ -11,13 +11,12 @@ test("トップに主要導線が揃っている", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("どこ行く")
   await expect(page.getByRole("searchbox", { name: "スポットを検索" })).toBeVisible()
 
-  // 件数タイル (装飾アイコンでなく数字が主役)
-  const tiles = page.locator(".data-tile")
-  await expect(tiles.first()).toBeVisible()
-  expect(await tiles.count()).toBeGreaterThanOrEqual(4)
+  // 件数リンク (装飾アイコンでなく数字が主役)。カード内バッジと衝突するので href で特定
+  await expect(page.locator('a[href="/spots?rainy_day_ok=true"]').first()).toBeVisible()
+  await expect(page.locator('a[href="/spots?price_type=free"]').first()).toBeVisible()
 
-  // 時間軸ナビ
-  await expect(page.getByRole("link", { name: "今日行ける" })).toBeVisible()
+  // 当日意思決定への主導線
+  await expect(page.getByRole("link", { name: /3つから選ぶ/ }).first()).toBeVisible()
 })
 
 test("検索して詳細ページまで到達できる", async ({ page }) => {

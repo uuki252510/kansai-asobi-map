@@ -1,4 +1,4 @@
-import { CalendarClock, Coins, Gauge, ShieldQuestion, Sparkles } from "lucide-react"
+import { CalendarClock, Coins, Gauge, ShieldQuestion } from "lucide-react"
 import type { Place } from "@/lib/supabase/database.types"
 
 const crowdLabels: Record<string, string> = {
@@ -80,7 +80,7 @@ export default function PlaceDecisionBrief({ place }: { place: Place }) {
     <section className="mt-5 rounded-[24px] border border-line bg-white p-4 shadow-sm sm:p-5" aria-labelledby="decision-brief-title">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <span className="eyebrow"><Sparkles className="size-3.5" />まずここだけ</span>
+          <span className="eyebrow">まずここだけ</span>
           <h2 id="decision-brief-title" className="mt-2 text-xl font-black text-ink">行くか決める4つの情報</h2>
         </div>
         <div className="min-w-44">

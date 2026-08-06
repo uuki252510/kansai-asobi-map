@@ -49,17 +49,17 @@
 
 :root {
   /* ---- Neutral (5段のみ / 湖のインク×朝もや) ---- */
-  --ink: #1a1c1a;
-  --ink-soft: #575d58;
+  --ink: #11110f;
+  --ink-soft: #5f5b55;
   --ink-faint: #6d726d; /* 白背景で4.5:1。免責文・補足が読める最低線 */
-  --line: #e4e2dc;
-  --canvas: #fbfaf8;
-  --surface: #ffffff;
+  --line: #ddd6ca;
+  --canvas: #f5f1e8;
+  --surface: #fffdf8;
 
   /* ---- Accent 1色 (若葉グリーン) ---- */
-  --accent: #2b7257;
-  --accent-strong: #1f5a45;
-  --accent-soft: #ecf1ec;
+  --accent: #075ecb;
+  --accent-strong: #06478f;
+  --accent-soft: #e4eefb;
 
   /* ---- Semantic (情報色。装飾に使わない) ---- */
   --positive: #14624a;
@@ -128,7 +128,8 @@
 
   /* ---- Typography (Display=丸ゴシック / Body=Noto Sans JP) ---- */
   --font-body: var(--font-noto-sans-jp), "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
-  --font-display: var(--font-display-face), "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-display: var(--font-body);
+  --font-poster: var(--font-display-face), "Dela Gothic One", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
 
 @layer base {

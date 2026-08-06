@@ -59,6 +59,8 @@ export type Place = {
   rainy_day_ok: boolean
   opening_hours: string | null
   image_url: string | null
+  /** Storageに取り込んだ写真のパス。写真の有無判定は image_url と両方見る */
+  image_storage_path?: string | null
   google_map_url: string | null
   website_url: string | null
   is_published: boolean

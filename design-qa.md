@@ -52,3 +52,44 @@
 - [P3] Obscure places without a relevant free-license public image still use the branded map fallback. Their coverage can improve later through admin-curated image URLs or licensed user submissions; the UI does not fabricate location photography.
 
 final result: passed
+---
+
+# Design QA — 2026-08-06 Editorial Homepage
+
+## Comparison target
+
+- Source visual truth: `design/reference-homepage-long.png` (793 × 1983).
+- Rendered implementation: `design/implementation-desktop.png` (1440 × 8945 before the density correction).
+- Same-input comparisons: `design/qa-hero-comparison.jpg` and `design/qa-full-comparison.jpg`.
+- Desktop viewport: 1440 × 1100, full-page capture.
+- Responsive rules checked in code: 1080 px, 820 px, and 560 px breakpoints.
+
+## Findings and fixes
+
+### Pass 1
+
+- [P2][Density/layout] The first implementation preserved all requested discovery sections but was substantially taller than the source visual rhythm. Evidence: the source normalized to a 1440 px width is approximately 3600 px tall, while the first full capture was 8945 px.
+- Fix: added a desktop density pass in `EditorialHome.module.css`: hero 660 px, 72–76 px section padding, shorter section headings, 16:10 media, 420 px map, compact mood/event/rain rows, 470 px closing feature, and tighter final CTA.
+- [P2][Surface treatment] The hero used a gradient shade not present in the selected flat editorial direction.
+- Fix: replaced it with one uniform translucent image shade.
+- Post-fix production build and TypeScript checks passed.
+
+### Pass 2
+
+- No actionable P0 or P1 issue remains.
+- Typography: Dela Gothic One supplies the approved heavy Japanese Gothic display voice; Noto Sans JP remains the readable body face. The hero scale is smaller than the initial screenshot while keeping the deliberate editorial line breaks.
+- Layout: diagonal hero image, folio index, paper-like dividers, three-column recommendations, pale-blue map field, mood matrix, dark rainy-day band, time columns, editorial feature, and final decision CTA preserve the reference hierarchy.
+- Colors: off-white paper, black ink, Kansai blue, and a restrained red CTA match the source direction. Focus states keep a visible 3 px blue outline.
+- Image quality: hero/cards/events/articles use current production content images; the map uses the generated 1200 × 620 editorial Kansai asset. No CSS or SVG substitute was used for visible imagery.
+- Content: all public sections use existing spot, ranking, prefecture count, mood, weather, event, rainy-day, stay-time, or article data. No fabricated venue data was added.
+- Intentional P3 difference: the source hero shows a waterfront rail scene, while the implementation shows the current Kobe hero spot. This is intentional because the approved handoff explicitly requested reuse of the live site's information and imagery.
+
+## Functional and accessibility checks
+
+- Production build and Next.js TypeScript validation: passed.
+- Existing unit suite: 63 tests passed.
+- Search form, primary recommendation CTA, geolocation CTA, area links, map link, mood tabs, event links, article links, and mobile navigation are wired to existing routes.
+- Semantic buttons/tabs, input labels, alt text, keyboard focus, reduced-motion rules, and practical mobile tap sizes are present.
+- The Browser plugin could not start because the local Windows sandbox returned a DPAPI error; the fallback desktop capture completed through the project's installed Playwright CLI.
+
+final result: passed

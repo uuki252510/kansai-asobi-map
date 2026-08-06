@@ -15,7 +15,6 @@ import {
   RefreshCw,
   Route,
   Share2,
-  Sparkles,
   Users,
   Vote,
   WalletCards,
@@ -139,7 +138,7 @@ export default function RecommendationResults({
           </div>
           <div className="decision-filters flex max-w-xl flex-wrap gap-2">
             <span className="decision-count"><strong>{results.length}</strong><small>choices</small></span>
-            {conditions.moods.map((mood) => <span key={mood} className="chip is-green"><Sparkles className="size-3" />{MOOD_LABELS[mood]}</span>)}
+            {conditions.moods.map((mood) => <span key={mood} className="chip is-green">{MOOD_LABELS[mood]}</span>)}
             <span className="chip"><Users className="size-3" />{conditions.companion === "family" ? "家族" : "おでかけ"}</span>
             <span className="chip"><WalletCards className="size-3" />{conditions.budgetMax === null ? "予算指定なし" : `${conditions.budgetMax.toLocaleString()}円以内`}</span>
             <span className="chip"><Route className="size-3" />{conditions.travelMinutes === null ? "移動時間指定なし" : `${conditions.travelMinutes}分以内`}</span>

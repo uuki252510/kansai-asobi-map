@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Noto_Sans_JP, Shippori_Mincho_B1 } from "next/font/google"
+import { Dela_Gothic_One, Noto_Sans_JP } from "next/font/google"
 import "./globals.css"
 
 const notoSansJP = Noto_Sans_JP({
@@ -9,13 +9,14 @@ const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
 })
 
-const shippori = Shippori_Mincho_B1({
-  weight: ["700", "800"],
-  subsets: ["latin"],
+const delaGothic = Dela_Gothic_One({
+  weight: "400",
+  preload: false,
+  display: "swap",
   variable: "--font-display-face",
 })
-import Header from "@/components/Header"
-import MobileBottomNav from "@/components/MobileBottomNav"
+import Header from "@/components/EditorialHeader"
+import MobileBottomNav from "@/components/EditorialMobileNav"
 import BrandMark from "@/components/BrandMark"
 
 export const metadata: Metadata = {
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${shippori.variable}`} suppressHydrationWarning>
+    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${delaGothic.variable}`} suppressHydrationWarning>
       <body className="min-h-full bg-background text-foreground">
         {/* JSがある環境だけスクロールRevealの初期非表示を有効化 (no-JS/SEO安全) */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
