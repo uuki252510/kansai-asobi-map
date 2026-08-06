@@ -17,6 +17,8 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
   const price = eventPriceLabel(event)
   const start = new Date(event.start_at)
   const isOngoing = new Date(event.start_at) <= new Date() && new Date(event.end_at) >= new Date()
+  const periodLabel = eventPeriodLabel(event)
+  const badgeDate = `${start.getMonth() + 1}/${start.getDate()}`
 
   return (
     <Link
@@ -53,7 +55,8 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
       </div>
 
       <p className="mt-2 text-xs font-black text-accent">
-        {eventPeriodLabel(event)}
+        {/* 写真が無いカードは日付を大きく出しているので、同じ日付を繰り返さない */}
+        {!(cover === null && periodLabel === badgeDate) && periodLabel}
         {event.event_category && (
           <span className="ml-1.5 font-bold text-ink-soft">{EVENT_CATEGORY_LABELS[event.event_category]}</span>
         )}

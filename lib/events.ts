@@ -47,6 +47,7 @@ export interface PublicEvent {
   longitude: number | null
   start_at: string
   end_at: string
+  start_time_unknown: boolean
   event_category: EventCategory | null
   child_price: number | null
   adult_price: number | null
@@ -63,7 +64,7 @@ export interface PublicEvent {
 }
 
 const COLUMNS =
-  "id,slug,place_id,name,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
+  "id,slug,place_id,name,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,start_time_unknown,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
 
 export function eventCoverUrl(event: Pick<PublicEvent, "cover_storage_path" | "cover_external_url">): string | null {
   if (event.cover_storage_path) return storagePublicUrl(event.cover_storage_path)
@@ -71,16 +72,18 @@ export function eventCoverUrl(event: Pick<PublicEvent, "cover_storage_path" | "c
 }
 
 /** 一覧・カードで使う開催期間の表示 */
-export function eventPeriodLabel(event: Pick<PublicEvent, "start_at" | "end_at">): string {
+export function eventPeriodLabel(
+  event: Pick<PublicEvent, "start_at" | "end_at"> & { start_time_unknown?: boolean },
+): string {
   const start = new Date(event.start_at)
   const end = new Date(event.end_at)
   const format = (date: Date) => `${date.getMonth() + 1}/${date.getDate()}`
   const sameDay = start.toDateString() === end.toDateString()
-  if (sameDay) {
-    const time = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`
-    return `${format(start)} ${time}〜`
-  }
-  return `${format(start)}〜${format(end)}`
+  if (!sameDay) return `${format(start)}〜${format(end)}`
+  // 時刻が未発表のイベントで 0:00 開始と出すと誤情報になる
+  if (event.start_time_unknown) return format(start)
+  const time = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`
+  return `${format(start)} ${time}〜`
 }
 
 export function eventPriceLabel(event: Pick<PublicEvent, "is_free" | "child_price" | "adult_price">): string | null {

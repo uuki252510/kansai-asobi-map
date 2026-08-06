@@ -16,10 +16,25 @@ import { breadcrumbJsonLd } from "@/lib/structured-data"
 
 const SITE_URL = "https://kansai.asobi.nexia-llc.jp"
 
-function formatDateTime(value: string): string {
+function formatDate(value: string): string {
   const date = new Date(value)
   const day = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()]
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${day}) ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${day})`
+}
+
+/**
+ * 構造化データ用の YYYY-MM-DD。
+ * ISO文字列を slice すると UTC の日付になり、JSTの深夜〜朝の値が前日にずれる。
+ * (例: 2026-08-22T00:00+09:00 → "2026-08-21")
+ */
+function isoDate(value: string): string {
+  const date = new Date(value)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+}
+
+function formatDateTime(value: string): string {
+  const date = new Date(value)
+  return `${formatDate(value)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ identifier: string }> }): Promise<Metadata> {
@@ -54,6 +69,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const now = new Date()
   const ended = new Date(event.end_at) < now
   const ongoing = new Date(event.start_at) <= now && !ended
+  const sameDay = new Date(event.start_at).toDateString() === new Date(event.end_at).toDateString()
 
   const mapUrl = event.address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`
@@ -65,8 +81,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     "@type": "Event",
     name: event.name,
     description: event.summary ?? undefined,
-    startDate: event.start_at,
-    endDate: event.end_at,
+    // 時刻未確認のときは日付だけ出す。schema.org は Date でも DateTime でもよい
+    startDate: event.start_time_unknown ? isoDate(event.start_at) : event.start_at,
+    endDate: event.start_time_unknown ? isoDate(event.end_at) : event.end_at,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     image: cover ?? undefined,
@@ -146,8 +163,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-[6rem_1fr] gap-3 py-3">
               <dt className="font-bold text-ink-soft">開催日時</dt>
               <dd className="font-bold text-ink">
-                {formatDateTime(event.start_at)}
-                <br />〜 {formatDateTime(event.end_at)}
+                {event.start_time_unknown ? (
+                  <>
+                    {sameDay ? formatDate(event.start_at) : `${formatDate(event.start_at)} 〜 ${formatDate(event.end_at)}`}
+                    <span className="mt-1 block text-xs font-bold text-ink-faint">
+                      開催時刻は主催者の発表をご確認ください
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {formatDateTime(event.start_at)}
+                    <br />〜 {formatDateTime(event.end_at)}
+                  </>
+                )}
               </dd>
             </div>
             {(event.venue_name || event.address) && (
