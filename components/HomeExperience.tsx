@@ -12,6 +12,7 @@ import SpotCarousel from "@/components/SpotCarousel"
 import TimeChips from "@/components/TimeChips"
 import WeatherSummary from "@/components/WeatherSummary"
 import { trackEvent } from "@/lib/analytics"
+import { JST_WEEKDAYS, jstParts } from "@/lib/jst"
 import type { Article } from "@/lib/articles"
 import type { PublicEvent } from "@/lib/events"
 import type { PlaceWithAvgRating } from "@/lib/places"
@@ -95,85 +96,41 @@ export default function HomeExperience({
     )
   }
 
+  const nowParts = jstParts()
+  const todayLabel = `${nowParts.year}.${String(nowParts.month).padStart(2, "0")}.${String(nowParts.day).padStart(2, "0")} ${JST_WEEKDAYS[nowParts.weekday]}`
+
   return (
     <div className="page-shell flex flex-col gap-12 py-6 sm:py-10">
-      {/* 第一画面: 天気連動ヒーロー (Signature) — 今日の空が背景になる */}
-      <section
-        className={`sky-hero is-${weatherCondition === "any" ? "sunny" : weatherCondition} -mx-4 -mt-6 px-4 pb-8 pt-10 sm:-mx-8 sm:rounded-b-[40px] sm:px-8 sm:pt-14`}
-      >
-        <span className="sky-cloud left-0 top-8 h-10 w-28" aria-hidden />
-        <span className="sky-cloud is-far left-0 top-24 h-8 w-20" aria-hidden />
-
-        {/* 晴れ: 回転する太陽レイ / 雨: 落ちる雨粒 (モーショングラフィック) */}
-        {weatherCondition !== "rainy" && (
-          <svg className="sun-motif size-24 sm:size-32" viewBox="0 0 100 100" aria-hidden>
-            <g className="sun-rays" stroke="#FFC212" strokeWidth="4" strokeLinecap="round" opacity="0.75">
-              {Array.from({ length: 8 }, (_, index) => {
-                const angle = (index * Math.PI) / 4
-                return (
-                  <line
-                    key={index}
-                    x1={50 + Math.cos(angle) * 30}
-                    y1={50 + Math.sin(angle) * 30}
-                    x2={50 + Math.cos(angle) * 42}
-                    y2={50 + Math.sin(angle) * 42}
-                  />
-                )
-              })}
-            </g>
-            <circle cx="50" cy="50" r="20" fill="#FFD54F" />
-          </svg>
-        )}
-        {weatherCondition === "rainy" &&
-          [12, 28, 46, 63, 78, 90].map((left, index) => (
-            <span
-              key={left}
-              className="rain-drop"
-              style={{ left: `${left}%`, animationDelay: `${index * 0.28}s` }}
-              aria-hidden
-            />
-          ))}
-
-        <div className="hero-enter relative">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-[clamp(1.875rem,5vw,2.75rem)] font-black leading-tight tracking-tight text-ink">
-              今日、関西の
-              <br className="sm:hidden" />
-              どこ行く？
-            </h1>
-            {weatherLabel ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface/80 px-4 py-2 text-xs font-black text-ink backdrop-blur-sm">
-                {weatherLabel}
-              </span>
-            ) : (
-              <WeatherSummary compact />
-            )}
-          </div>
-          <p className="mt-2 text-sm font-bold leading-7 text-ink-soft">
-            {weatherCondition === "rainy" ? (
-              <>雨の日でも大丈夫。屋内スポット<CountUp value={rainyCount} className="mx-0.5 text-base text-ink" />件から選べます。</>
-            ) : (
-              <><CountUp value={totalSpotCount} className="mx-0.5 text-base text-ink" />件のスポットから、天気と気分に合う行き先を。</>
-            )}
-          </p>
-
-          <div className="mt-6">
-            <SearchBar examples={searchExamples} />
-          </div>
-
-          <div className="mt-4">
-            <TimeChips />
-          </div>
+      {/* 第一画面: エディトリアル・マストヘッド。装飾を排し、日付・天気・件数を
+          新聞の欄外情報のように一行で置き、タイポグラフィを主役にする */}
+      <section className="hero-enter pt-2 sm:pt-6">
+        <div className="masthead-rule flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-[11px] font-bold tracking-[0.12em] text-ink-soft">
+          <span>{todayLabel}</span>
+          <span aria-hidden>—</span>
+          {weatherLabel ? <span>{weatherLabel}</span> : <WeatherSummary compact />}
+          <span aria-hidden>—</span>
+          <span>掲載 <CountUp value={totalSpotCount} className="text-ink" /> 件</span>
         </div>
 
-        {/* 波ディバイダ (ゆるやかに流れる) */}
-        <div className="absolute inset-x-0 bottom-0 h-[18px] overflow-hidden" aria-hidden>
-          <svg className="wave-flow h-[18px]" viewBox="0 0 1200 18" preserveAspectRatio="none">
-            <path
-              d="M0 12 Q75 2 150 10 T300 10 T450 10 T600 10 T750 10 T900 10 T1050 10 T1200 10 V18 H0 Z"
-              fill="var(--canvas)"
-            />
-          </svg>
+        <h1 className="mt-8 font-display text-[clamp(2.5rem,8vw,4.75rem)] font-black leading-[1.08] tracking-tight text-ink sm:mt-12">
+          今日、関西の
+          <br />
+          どこ行く？
+        </h1>
+        <p className="mt-4 max-w-xl text-sm font-medium leading-7 text-ink-soft sm:text-base">
+          {weatherCondition === "rainy" ? (
+            <>雨の日でも大丈夫。屋内スポット<CountUp value={rainyCount} className="mx-0.5 font-bold text-ink" />件から選べます。</>
+          ) : (
+            <>天気と気分に合わせて、行き先をひとつ決めるための案内です。</>
+          )}
+        </p>
+
+        <div className="mt-8 sm:mt-10">
+          <SearchBar examples={searchExamples} />
+        </div>
+
+        <div className="mt-4">
+          <TimeChips />
         </div>
       </section>
 

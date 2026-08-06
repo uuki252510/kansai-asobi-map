@@ -62,7 +62,7 @@ export default function SearchBar({
         autoFocus={autoFocus}
         enterKeyHint="search"
         aria-label="スポットを検索"
-        className={`h-14 w-full rounded-full border border-line bg-surface pl-12 pr-32 text-[0.9375rem] font-bold text-ink shadow-[var(--shadow-card)] outline-none transition-opacity duration-200 placeholder:font-normal placeholder:text-ink-faint focus:border-ink-faint ${fading ? "placeholder:opacity-0" : "placeholder:opacity-100"}`}
+        className={`h-14 w-full rounded-[4px] border-2 border-ink bg-surface pl-12 pr-32 text-[0.9375rem] font-bold text-ink outline-none transition-opacity duration-200 placeholder:font-normal placeholder:text-ink-faint focus:border-ink-faint ${fading ? "placeholder:opacity-0" : "placeholder:opacity-100"}`}
       />
       <button type="submit" className="btn-primary absolute right-1.5 !min-h-11 px-5 text-sm">
         検索

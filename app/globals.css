@@ -179,6 +179,12 @@
 }
 
 @layer components {
+  /* マストヘッドの欄外情報 (日付/天気/件数)。上に太罫、下に細罫 */
+  .masthead-rule {
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+  }
+
   .icon-button {
     position: relative;
     display: inline-flex;
@@ -333,9 +339,8 @@
     gap: 8px;
     min-height: 48px;
     padding-inline: 24px;
-    border-radius: 999px;
-    /* 白文字とのコントラスト: accent は 3.1:1 しかないため濃い方を地にする */
-    background: var(--accent-strong);
+    border-radius: 4px;
+    background: var(--ink);
     color: #fff;
     font-size: 0.9375rem;
     font-weight: 900;
@@ -344,7 +349,7 @@
   }
 
   .btn-primary:hover {
-    background: var(--accent);
+    background: var(--accent-strong);
   }
 
   .btn-primary:active {
@@ -609,14 +614,16 @@
      データタイル: 装飾アイコンを置かず、件数そのものを視覚の主役にする
      ================================================================ */
   .data-tile {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    padding: 16px 20px 18px;
-    box-shadow: var(--shadow-card);
-    transition: transform var(--dur-fast) var(--ease-out);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid var(--ink);
+    padding: 14px 2px 6px;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .data-tile:hover {
+    opacity: 0.6;
   }
 
   .data-tile:active {
