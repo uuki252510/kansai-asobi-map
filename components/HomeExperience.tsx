@@ -112,7 +112,7 @@ export default function HomeExperience({
           <span>掲載 <CountUp value={totalSpotCount} className="text-ink" /> 件</span>
         </div>
 
-        <h1 className="mt-8 font-display text-[clamp(2.5rem,8vw,4.75rem)] font-black leading-[1.08] tracking-tight text-ink sm:mt-12">
+        <h1 className="mt-8 font-display text-[clamp(1.9rem,4.5vw,2.875rem)] font-extrabold leading-[1.25] text-ink sm:mt-12">
           今日、関西の
           <br />
           どこ行く？

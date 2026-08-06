@@ -128,7 +128,7 @@
 
   /* ---- Typography (Display=丸ゴシック / Body=Noto Sans JP) ---- */
   --font-body: var(--font-noto-sans-jp), "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
-  --font-display: var(--font-display-face), "Zen Kaku Gothic New", var(--font-noto-sans-jp), sans-serif;
+  --font-display: var(--font-display-face), "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
 }
 
 @layer base {
@@ -153,6 +153,8 @@
   h2,
   h3 {
     font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.03em;
   }
 
   a,

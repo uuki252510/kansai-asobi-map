@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Noto_Sans_JP, Zen_Kaku_Gothic_New } from "next/font/google"
+import { Noto_Sans_JP, Shippori_Mincho_B1 } from "next/font/google"
 import "./globals.css"
 
 const notoSansJP = Noto_Sans_JP({
@@ -9,8 +9,8 @@ const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
 })
 
-const zenKaku = Zen_Kaku_Gothic_New({
-  weight: ["500", "700", "900"],
+const shippori = Shippori_Mincho_B1({
+  weight: ["700", "800"],
   subsets: ["latin"],
   variable: "--font-display-face",
 })
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${zenKaku.variable}`} suppressHydrationWarning>
+    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${shippori.variable}`} suppressHydrationWarning>
       <body className="min-h-full bg-background text-foreground">
         {/* JSがある環境だけスクロールRevealの初期非表示を有効化 (no-JS/SEO安全) */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
