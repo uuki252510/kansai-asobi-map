@@ -38,10 +38,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
   --radius-2xl: calc(var(--radius) * 1.9);
   --radius-3xl: calc(var(--radius) * 2.4);
   --radius-4xl: calc(var(--radius) * 3);
@@ -49,31 +49,31 @@
 
 :root {
   /* ---- Neutral (5段のみ / 湖のインク×朝もや) ---- */
-  --ink: #12383c;
-  --ink-soft: #4c7276;
-  --ink-faint: #6b8b8d; /* 白背景で4.5:1。免責文・補足が読める最低線 */
-  --line: #d9ecec;
-  --canvas: #f2f9f8;
+  --ink: #1a1c1a;
+  --ink-soft: #575d58;
+  --ink-faint: #6d726d; /* 白背景で4.5:1。免責文・補足が読める最低線 */
+  --line: #e4e2dc;
+  --canvas: #fbfaf8;
   --surface: #ffffff;
 
   /* ---- Accent 1色 (若葉グリーン) ---- */
-  --accent: #0ca678;
-  --accent-strong: #08825e;
-  --accent-soft: #dff5ec;
+  --accent: #2b7257;
+  --accent-strong: #1f5a45;
+  --accent-soft: #ecf1ec;
 
   /* ---- Semantic (情報色。装飾に使わない) ---- */
-  --positive: #0a7a58;
-  --positive-soft: #def3ea;
+  --positive: #14624a;
+  --positive-soft: #eaf1ec;
   --caution: #8a6410;
   --caution-soft: #fdf3d9;
 
   /* ---- 空のグラデーション (Signature: 天気連動ヒーロー専用) ---- */
-  --sky-sunny-from: #c3e9f4;
-  --sky-sunny-to: #d9f4e6;
-  --sky-cloudy-from: #d5e5ea;
-  --sky-cloudy-to: #e3efe9;
-  --sky-rainy-from: #b9cfdc;
-  --sky-rainy-to: #ccdfe0;
+  --sky-sunny-from: #e9eef0;
+  --sky-sunny-to: #eef0e9;
+  --sky-cloudy-from: #e8eaeb;
+  --sky-cloudy-to: #eeefec;
+  --sky-rainy-from: #dde2e6;
+  --sky-rainy-to: #e6e9e6;
 
   /* ---- Shadow (card + overlay の2段のみ) ---- */
   --shadow-card: 0 6px 24px -12px rgb(18 56 60 / 0.14);
@@ -107,7 +107,7 @@
   --border: var(--line);
   --input: var(--line);
   --ring: var(--accent);
-  --radius: 1rem;
+  --radius: 0.625rem;
 
   /* ---- 互換エイリアス (Stage 5 で削除) ---- */
   --color-primary: var(--positive);
@@ -128,7 +128,7 @@
 
   /* ---- Typography (Display=丸ゴシック / Body=Noto Sans JP) ---- */
   --font-body: var(--font-noto-sans-jp), "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
-  --font-display: var(--font-m-plus-rounded), "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", var(--font-noto-sans-jp), sans-serif;
+  --font-display: var(--font-display-face), "Zen Kaku Gothic New", var(--font-noto-sans-jp), sans-serif;
 }
 
 @layer base {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { M_PLUS_Rounded_1c, Noto_Sans_JP } from "next/font/google"
+import { Noto_Sans_JP, Zen_Kaku_Gothic_New } from "next/font/google"
 import "./globals.css"
 
 const notoSansJP = Noto_Sans_JP({
@@ -9,11 +9,10 @@ const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
 })
 
-const mPlusRounded = M_PLUS_Rounded_1c({
+const zenKaku = Zen_Kaku_Gothic_New({
+  weight: ["500", "700", "900"],
   subsets: ["latin"],
-  weight: ["700", "900"],
-  display: "swap",
-  variable: "--font-m-plus-rounded",
+  variable: "--font-display-face",
 })
 import Header from "@/components/Header"
 import MobileBottomNav from "@/components/MobileBottomNav"
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${mPlusRounded.variable}`} suppressHydrationWarning>
+    <html lang="ja" className={`h-full antialiased ${notoSansJP.variable} ${zenKaku.variable}`} suppressHydrationWarning>
       <body className="min-h-full bg-background text-foreground">
         {/* JSがある環境だけスクロールRevealの初期非表示を有効化 (no-JS/SEO安全) */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
