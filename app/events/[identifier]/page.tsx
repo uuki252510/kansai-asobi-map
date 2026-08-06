@@ -13,28 +13,25 @@ import {
 import { getPlacesByIds } from "@/lib/places"
 import { renderSafeMarkdown } from "@/lib/safe-markdown"
 import { breadcrumbJsonLd } from "@/lib/structured-data"
+import { JST_WEEKDAYS, jstDateKey, jstParts, jstSameDay } from "@/lib/jst"
 
 const SITE_URL = "https://kansai.asobi.nexia-llc.jp"
 
+// 日付・時刻はすべてJSTで読む。サーバーはUTCで動くため、
+// Date を直読みすると日付が前日にずれ、時刻は9時間ずれる
 function formatDate(value: string): string {
-  const date = new Date(value)
-  const day = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()]
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${day})`
+  const parts = jstParts(new Date(value))
+  return `${parts.year}年${parts.month}月${parts.day}日(${JST_WEEKDAYS[parts.weekday]})`
 }
 
-/**
- * 構造化データ用の YYYY-MM-DD。
- * ISO文字列を slice すると UTC の日付になり、JSTの深夜〜朝の値が前日にずれる。
- * (例: 2026-08-22T00:00+09:00 → "2026-08-21")
- */
+/** 構造化データ用の YYYY-MM-DD (JST基準) */
 function isoDate(value: string): string {
-  const date = new Date(value)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+  return jstDateKey(new Date(value))
 }
 
 function formatDateTime(value: string): string {
-  const date = new Date(value)
-  return `${formatDate(value)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+  const parts = jstParts(new Date(value))
+  return `${formatDate(value)} ${String(parts.hour).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ identifier: string }> }): Promise<Metadata> {
@@ -56,8 +53,14 @@ export async function generateMetadata({ params }: { params: Promise<{ identifie
       type: "article",
       title: `${event.name}｜デカケル`,
       description,
-      images: cover ? [{ url: cover, alt: event.name }] : undefined,
+      url: `/events/${event.slug ?? event.id}`,
+      siteName: "デカケル",
+      locale: "ja_JP",
+      // ページで openGraph を定義すると親の設定は丸ごと置き換わる。
+      // 写真が無い(またはイメージ写真の)イベントはブランドのOG画像に落とす
+      images: cover ? [{ url: cover, alt: event.name }] : [{ url: "/opengraph-image", alt: "デカケル" }],
     },
+    twitter: { title: `${event.name}｜デカケル`, description },
   }
 }
 
@@ -73,7 +76,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const now = new Date()
   const ended = new Date(event.end_at) < now
   const ongoing = new Date(event.start_at) <= now && !ended
-  const sameDay = new Date(event.start_at).toDateString() === new Date(event.end_at).toDateString()
+  const sameDay = jstSameDay(new Date(event.start_at), new Date(event.end_at))
 
   const mapUrl = event.address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`
@@ -99,7 +102,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       "@type": "Place",
       name: event.venue_name ?? event.address,
       address: event.address
-        ? { "@type": "PostalAddress", addressRegion: event.prefecture ?? undefined, addressLocality: event.city ?? undefined, streetAddress: event.address, addressCountry: "JP" }
+        ? {
+            "@type": "PostalAddress",
+            addressRegion: event.prefecture ?? undefined,
+            addressLocality: event.city ?? undefined,
+            // address には「兵庫県豊岡市…」の全体が入っているので、府県・市区を取り除いた残りだけを番地に入れる
+            streetAddress:
+              event.address.replace(event.prefecture ?? "", "").replace(event.city ?? "", "").trim() || undefined,
+            addressCountry: "JP",
+          }
         : undefined,
       geo:
         event.latitude !== null && event.longitude !== null

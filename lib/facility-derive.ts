@@ -5,6 +5,7 @@ import type {
   PriceTierKind,
 } from "@/lib/facility-types"
 import { TIER_LABELS } from "@/lib/facility-types"
+import { jstDateKey, jstMinutesOfDay, jstParts } from "@/lib/jst"
 
 /**
  * 営業状況・料金目安・鮮度の導出ロジック (純関数・テスト対象)。
@@ -30,15 +31,22 @@ function formatTime(time: string): string {
   return time.slice(0, 5)
 }
 
-function dateKey(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, "0")
-  const d = String(date.getDate()).padStart(2, "0")
-  return `${y}-${m}-${d}`
+/**
+ * 閉店が開店より前 (21:00〜翌02:00 のような日跨ぎ営業) を扱うため、
+ * 閉店側を翌日に繰り越した上で「今」が枠内かを判定する。
+ */
+function withinSlot(nowMinutes: number, open: number, close: number): { inside: boolean; minutesToClose: number } {
+  const closeAdjusted = close <= open ? close + 1440 : close
+  const nowAdjusted = nowMinutes < open && close <= open ? nowMinutes + 1440 : nowMinutes
+  return {
+    inside: nowAdjusted >= open && nowAdjusted < closeAdjusted,
+    minutesToClose: closeAdjusted - nowAdjusted,
+  }
 }
 
 /**
- * 本日の営業状況を判定する。
+ * 本日の営業状況を判定する。日付・曜日・時刻はすべて日本時間で読む
+ * (サーバーはUTCで動くため、Date を直接読むと朝9時まで前日扱いになる)。
  * 優先順: 臨時休業/特別営業 (exceptions) → 曜日別営業時間 → 不明
  */
 export function todayBusinessStatus(
@@ -46,8 +54,8 @@ export function todayBusinessStatus(
   exceptions: BusinessException[],
   now: Date = new Date(),
 ): TodayStatus {
-  const today = dateKey(now)
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  const today = jstDateKey(now)
+  const nowMinutes = jstMinutesOfDay(now)
 
   // 1) 例外日 (臨時休業・特別営業・短縮)
   const exception = exceptions.find((entry) => entry.date === today)
@@ -59,16 +67,19 @@ export function todayBusinessStatus(
       const open = toMinutes(exception.opening_time)
       const close = toMinutes(exception.closing_time)
       const slotLabel = `${formatTime(exception.opening_time)}〜${formatTime(exception.closing_time)}`
+      const slot = withinSlot(nowMinutes, open, close)
+      if (slot.inside) {
+        if (slot.minutesToClose <= 60) return { state: "closing_soon", label: `まもなく閉館 (〜${formatTime(exception.closing_time)})`, todaySlots: [slotLabel], note: exception.notice }
+        return { state: "open", label: `営業中 (〜${formatTime(exception.closing_time)})`, todaySlots: [slotLabel], note: exception.notice }
+      }
       if (nowMinutes < open) return { state: "closed_now", label: `本日 ${slotLabel}`, todaySlots: [slotLabel], note: exception.notice }
-      if (nowMinutes >= close) return { state: "closed_now", label: "本日の営業は終了", todaySlots: [slotLabel], note: exception.notice }
-      if (close - nowMinutes <= 60) return { state: "closing_soon", label: `まもなく閉館 (〜${formatTime(exception.closing_time)})`, todaySlots: [slotLabel], note: exception.notice }
-      return { state: "open", label: `営業中 (〜${formatTime(exception.closing_time)})`, todaySlots: [slotLabel], note: exception.notice }
+      return { state: "closed_now", label: "本日の営業は終了", todaySlots: [slotLabel], note: exception.notice }
     }
   }
 
   // 2) 曜日別 (有効期間内のもの)
   const dayHours = hours.filter((hour) => {
-    if (hour.day_of_week !== now.getDay()) return false
+    if (hour.day_of_week !== jstParts(now).weekday) return false
     if (hour.valid_from && today < hour.valid_from) return false
     if (hour.valid_until && today > hour.valid_until) return false
     return true
@@ -90,8 +101,9 @@ export function todayBusinessStatus(
   for (const slot of slots) {
     const open = toMinutes(slot.opening_time)
     const close = toMinutes(slot.closing_time)
-    if (nowMinutes >= open && nowMinutes < close) {
-      if (close - nowMinutes <= 60) {
+    const within = withinSlot(nowMinutes, open, close)
+    if (within.inside) {
+      if (within.minutesToClose <= 60) {
         return { state: "closing_soon", label: `まもなく閉館 (〜${formatTime(slot.closing_time)})`, todaySlots, note: openRows[0].note }
       }
       return { state: "open", label: `営業中 (〜${formatTime(slot.closing_time)})`, todaySlots, note: openRows[0].note }

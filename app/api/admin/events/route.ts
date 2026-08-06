@@ -36,8 +36,8 @@ export async function POST(request: Request) {
     .insert({
       ...rest,
       status,
-      start_at: `${startAt}:00`,
-      end_at: `${endAt}:00`,
+      start_at: `${startAt}:00+09:00`,
+      end_at: `${endAt}:00+09:00`,
       published_at: status === "published" ? new Date().toISOString() : null,
     } as never)
     .select("id,slug")

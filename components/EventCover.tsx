@@ -1,4 +1,5 @@
 import type { PublicEvent } from "@/lib/events"
+import { JST_WEEKDAYS, jstParts } from "@/lib/jst"
 
 /**
  * 写真が用意できないイベントのカバー。
@@ -35,7 +36,7 @@ const COLORS: Record<string, { glow: string; ray: string }> = {
 const DEFAULT_COLOR = COLORS.兵庫県
 
 export default function EventCover({ event }: { event: PublicEvent }) {
-  const start = new Date(event.start_at)
+  const start = jstParts(new Date(event.start_at))
   const magnitude = scaleMagnitude(event.highlight_value)
   const color = COLORS[event.prefecture ?? ""] ?? DEFAULT_COLOR
 
@@ -80,10 +81,10 @@ export default function EventCover({ event }: { event: PublicEvent }) {
         ) : (
           <>
             <p className="font-display text-3xl font-black leading-none text-white">
-              {start.getMonth() + 1}<span className="text-lg">/</span>{start.getDate()}
+              {start.month}<span className="text-lg">/</span>{start.day}
             </p>
             <p className="mt-1 text-[10px] font-bold text-white/70">
-              {["日", "月", "火", "水", "木", "金", "土"][start.getDay()]}曜
+              {JST_WEEKDAYS[start.weekday]}曜
             </p>
           </>
         )}

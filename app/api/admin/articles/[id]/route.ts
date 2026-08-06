@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { verifyAdminRequest } from "@/lib/admin-auth"
+import { jstDateTimeLocal } from "@/lib/jst"
 import { validateArticle } from "@/lib/article-payload"
 import { createServiceRoleClient } from "@/lib/supabase/service"
 
@@ -21,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const row = article.data
   return NextResponse.json({
-    article: { ...row, published_at: row.published_at ? String(row.published_at).slice(0, 16) : null },
+    article: { ...row, published_at: row.published_at ? jstDateTimeLocal(String(row.published_at)) : null },
     place_ids: ((links.data ?? []) as Array<{ place_id: string }>).map((entry) => entry.place_id),
     tag_ids: ((tagLinks.data ?? []) as Array<{ tag_id: string }>).map((entry) => entry.tag_id),
   })
@@ -47,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     .from("articles" as never)
     .update({
       ...fields,
-      published_at: publishedAt ? `${publishedAt}:00` : null,
+      published_at: publishedAt ? `${publishedAt}:00+09:00` : null,
       updated_at: new Date().toISOString(),
     } as never)
     .eq("id", id)
@@ -88,10 +89,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!UUID_PATTERN.test(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 })
 
   const supabase = createServiceRoleClient()
+  // 個別ページの revalidate に slug が要るので、消す前に取っておく
+  const { data: existing } = await supabase.from("articles" as never).select("slug").eq("id", id).maybeSingle()
   const { error } = await supabase.from("articles" as never).delete().eq("id", id)
   if (error) return NextResponse.json({ error: `削除に失敗しました: ${error.message}` }, { status: 500 })
 
   revalidatePath("/articles")
+  if ((existing as unknown as { slug?: string } | null)?.slug) revalidatePath(`/articles/${(existing as unknown as { slug: string }).slug}`)
   revalidatePath("/")
   return NextResponse.json({ ok: true })
 }

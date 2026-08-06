@@ -133,7 +133,7 @@ export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAv
           .from("places_with_rating" as "places")
           .select("*")
           .eq("is_published", true)
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false }).order("id"),
         filters,
       ).range(from, to),
     )
@@ -145,7 +145,7 @@ export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAv
           .from("places")
           .select("*, reviews(rating)")
           .eq("is_published", true)
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false }).order("id"),
         filters,
       ).range(from, to),
     )
@@ -202,7 +202,7 @@ export async function getPublishedPlaceIndex() {
         .from("places")
         .select("id, created_at, updated_at")
         .eq("is_published", true)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false }).order("id")
         .range(from, to),
     )
   } catch {

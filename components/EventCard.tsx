@@ -1,5 +1,6 @@
 import Link from "next/link"
 import EventCover from "@/components/EventCover"
+import { jstParts } from "@/lib/jst"
 import {
   eventCoverUrl,
   eventHref,
@@ -16,10 +17,10 @@ import {
 export default function EventCard({ event, compact = false }: { event: PublicEvent; compact?: boolean }) {
   const cover = eventCoverUrl(event)
   const price = eventPriceLabel(event)
-  const start = new Date(event.start_at)
+  const start = jstParts(new Date(event.start_at))
   const isOngoing = new Date(event.start_at) <= new Date() && new Date(event.end_at) >= new Date()
   const periodLabel = eventPeriodLabel(event)
-  const badgeDate = `${start.getMonth() + 1}/${start.getDate()}`
+  const badgeDate = `${start.month}/${start.day}`
   // その大会の実写真ではなく、PD/CC0のイメージ写真 (scripts/fetch-event-covers.mjs)
   const isStockPhoto = Boolean(event.cover_storage_path?.startsWith("event-covers/stock-"))
 
@@ -33,7 +34,7 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={cover}
-            alt=""
+            alt={isStockPhoto ? "花火のイメージ写真" : ""}
             width={640}
             height={480}
             loading="lazy"
@@ -45,14 +46,15 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
         )}
         {isOngoing && <span className="badge-photo is-positive absolute left-2 top-2">開催中</span>}
         {!isOngoing && event.is_free && <span className="badge-photo absolute left-2 top-2">入場無料</span>}
+        {/* 免責は alt が担うので、視覚バッジは読み上げから外す (リンク名の先頭を汚さない) */}
         {cover && isStockPhoto && (
-          <span className="absolute bottom-2 right-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold text-white/90">
+          <span aria-hidden className="absolute bottom-2 right-2 rounded-full bg-black/65 px-2 py-0.5 text-[11px] font-bold text-white">
             写真はイメージ
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-xs font-black text-accent">
+      <p className="mt-2 text-xs font-black text-accent-strong">
         {/* カバーが日付を大きく出しているときだけ、同じ日付を繰り返さない */}
         {!(cover === null && !event.highlight_value && periodLabel === badgeDate) && periodLabel}
         {event.event_category && (

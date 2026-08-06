@@ -61,7 +61,7 @@ export async function getPublishedArticles(limit = 12, type?: ArticleType): Prom
         .from("articles" as never)
         .select(COLUMNS)
         .eq("status", "published")
-        .order("published_at", { ascending: false })
+        .order("published_at", { ascending: false, nullsFirst: false })
         .limit(limit)
       if (type) query = query.eq("article_type", type)
       return query.then((result) => ({ data: result.data as unknown as Article[], error: result.error }))
@@ -125,12 +125,13 @@ export async function getRelatedArticles(article: Article, limit = 4): Promise<A
           supabase
             .from("articles" as never)
             .select(COLUMNS)
-            .in("id", ids.slice(0, limit))
+            .in("id", ids)
             .eq("status", "published")
             .then((result) => ({ data: result.data as unknown as Article[], error: result.error })),
         [],
       )
-      if (related.length > 0) return related
+      // published で絞ってから limit する (先に slice すると非公開分だけ関連が減る)
+      if (related.length > 0) return related.slice(0, limit)
     }
   }
   // タグが無ければ同じタイプの新着で埋める

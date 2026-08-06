@@ -23,10 +23,10 @@ function test(name, fn) {
 }
 
 // 2026-08-05 は水曜日 (day 3)
-const wed10 = new Date("2026-08-05T10:00:00")
-const wed1630 = new Date("2026-08-05T16:30:00")
-const wed19 = new Date("2026-08-05T19:00:00")
-const wed7 = new Date("2026-08-05T07:00:00")
+const wed10 = new Date("2026-08-05T10:00:00+09:00")
+const wed1630 = new Date("2026-08-05T16:30:00+09:00")
+const wed19 = new Date("2026-08-05T19:00:00+09:00")
+const wed7 = new Date("2026-08-05T07:00:00+09:00")
 
 const hoursWed = [{
   id: "h1", place_id: "p1", day_of_week: 3, is_closed: false, note: null, valid_from: null, valid_until: null,
@@ -69,7 +69,7 @@ test("営業中判定: 臨時休業が曜日設定より優先される", () => 
 
 test("営業中判定: 短縮営業の時間が使われる", () => {
   const exceptions = [{ id: "e2", place_id: "p1", date: "2026-08-05", exception_type: "shortened", opening_time: "10:00:00", closing_time: "15:00:00", reason: null, notice: null }]
-  const status = todayBusinessStatus(hoursWed, exceptions, new Date("2026-08-05T14:30:00"))
+  const status = todayBusinessStatus(hoursWed, exceptions, new Date("2026-08-05T14:30:00+09:00"))
   assert.equal(status.state, "closing_soon")
 })
 
@@ -81,8 +81,8 @@ test("営業中判定: 複数時間帯 (昼休憩) の間はclosed_now", () => {
       { id: "s2", opening_time: "13:00:00", closing_time: "17:00:00", last_entry_time: null, sort_order: 1 },
     ],
   }]
-  assert.equal(todayBusinessStatus(split, [], new Date("2026-08-05T12:30:00")).state, "closed_now")
-  assert.equal(todayBusinessStatus(split, [], new Date("2026-08-05T13:30:00")).state, "open")
+  assert.equal(todayBusinessStatus(split, [], new Date("2026-08-05T12:30:00+09:00")).state, "closed_now")
+  assert.equal(todayBusinessStatus(split, [], new Date("2026-08-05T13:30:00+09:00")).state, "open")
 })
 
 test("営業中判定: データなしはunknown", () => {
@@ -155,3 +155,25 @@ test("slug: 同名和文でも決定的", () => {
 })
 
 console.log(`\n${passed} tests passed${process.exitCode ? " (with failures)" : ""}`)
+
+// --- JST固定の検証: サーバーがUTCでも日本の壁時計で判定される ---
+// 2026-08-05T01:00Z は JST 10:00 (水曜)。UTCのまま読むと 1:00 で開店前と誤判定される
+const WED_HOURS = [{ day_of_week: 3, is_closed: false, note: null, valid_from: null, valid_until: null, slots: [{ opening_time: "09:00", closing_time: "17:00" }] }]
+test("UTC表記の現在時刻でもJSTで営業中と判定", () => {
+  assert.equal(todayBusinessStatus(WED_HOURS, [], new Date("2026-08-05T01:00:00Z")).state, "open")
+})
+test("UTC表記でJST朝7時は開店前", () => {
+  assert.equal(todayBusinessStatus(WED_HOURS, [], new Date("2026-08-04T22:00:00Z")).state, "closed_now")
+})
+
+// --- 日跨ぎ営業 (21:00〜翌02:00) ---
+const NIGHT_HOURS = [{ day_of_week: 3, is_closed: false, note: null, valid_from: null, valid_until: null, slots: [{ opening_time: "21:00", closing_time: "02:00" }] }]
+test("日跨ぎ営業: 21:30は営業中", () => {
+  assert.equal(todayBusinessStatus(NIGHT_HOURS, [], new Date("2026-08-05T21:30:00+09:00")).state, "open")
+})
+test("日跨ぎ営業: 20:00は開店前", () => {
+  assert.equal(todayBusinessStatus(NIGHT_HOURS, [], new Date("2026-08-05T20:00:00+09:00")).state, "closed_now")
+})
+test("日跨ぎ営業: 23:30も営業中 (0:00で切れない)", () => {
+  assert.equal(todayBusinessStatus(NIGHT_HOURS, [], new Date("2026-08-05T23:30:00+09:00")).state, "open")
+})

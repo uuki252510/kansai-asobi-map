@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { verifyAdminRequest } from "@/lib/admin-auth"
+import { jstDateTimeLocal } from "@/lib/jst"
 import { validateEvent } from "@/lib/event-payload"
 import { createServiceRoleClient } from "@/lib/supabase/service"
 
@@ -22,8 +23,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   return NextResponse.json({
     event: {
       ...row,
-      start_at: row.start_at ? String(row.start_at).slice(0, 16) : "",
-      end_at: row.end_at ? String(row.end_at).slice(0, 16) : "",
+      start_at: row.start_at ? jstDateTimeLocal(String(row.start_at)) : "",
+      end_at: row.end_at ? jstDateTimeLocal(String(row.end_at)) : "",
     },
   })
 }
@@ -49,8 +50,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     .update({
       ...rest,
       status,
-      start_at: `${startAt}:00`,
-      end_at: `${endAt}:00`,
+      start_at: `${startAt}:00+09:00`,
+      end_at: `${endAt}:00+09:00`,
       updated_at: new Date().toISOString(),
     } as never)
     .eq("id", id)
@@ -77,10 +78,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!UUID_PATTERN.test(id)) return NextResponse.json({ error: "invalid id" }, { status: 400 })
 
   const supabase = createServiceRoleClient()
+  const { data: existing } = await supabase.from("events" as never).select("slug").eq("id", id).maybeSingle()
   const { error } = await supabase.from("events" as never).delete().eq("id", id)
   if (error) return NextResponse.json({ error: `削除に失敗しました: ${error.message}` }, { status: 500 })
 
   revalidatePath("/events")
+  if ((existing as unknown as { slug?: string } | null)?.slug) revalidatePath(`/events/${(existing as unknown as { slug: string }).slug}`)
   revalidatePath("/")
   return NextResponse.json({ ok: true })
 }

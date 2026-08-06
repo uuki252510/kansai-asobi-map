@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("articles" as never)
-    .insert({ ...fields, published_at: publishedAt ? `${publishedAt}:00` : null } as never)
+    .insert({ ...fields, published_at: publishedAt ? `${publishedAt}:00+09:00` : null } as never)
     .select("id,slug")
     .single()
 

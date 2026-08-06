@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { storagePublicUrl } from "@/lib/media-validation"
+import { jstMidnight, jstParts, jstSameDay } from "@/lib/jst"
 
 /**
  * イベント (夏祭り・花火大会・商業施設の催し)。
@@ -77,15 +78,19 @@ export function eventCoverUrl(event: Pick<PublicEvent, "cover_storage_path" | "c
 export function eventPeriodLabel(
   event: Pick<PublicEvent, "start_at" | "end_at"> & { start_time_unknown?: boolean },
 ): string {
+  // サーバーはUTCで動くので、日本の日付・時刻は必ずJSTで読む
+  // (直読みすると単日イベントが「前日〜当日」の2日間になる)
   const start = new Date(event.start_at)
   const end = new Date(event.end_at)
-  const format = (date: Date) => `${date.getMonth() + 1}/${date.getDate()}`
-  const sameDay = start.toDateString() === end.toDateString()
-  if (!sameDay) return `${format(start)}〜${format(end)}`
+  const format = (date: Date) => {
+    const parts = jstParts(date)
+    return `${parts.month}/${parts.day}`
+  }
+  if (!jstSameDay(start, end)) return `${format(start)}〜${format(end)}`
   // 時刻が未発表のイベントで 0:00 開始と出すと誤情報になる
   if (event.start_time_unknown) return format(start)
-  const time = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`
-  return `${format(start)} ${time}〜`
+  const parts = jstParts(start)
+  return `${format(start)} ${String(parts.hour).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}〜`
 }
 
 export function eventPriceLabel(event: Pick<PublicEvent, "is_free" | "child_price" | "adult_price">): string | null {
@@ -152,20 +157,32 @@ export async function getEventByIdOrSlug(identifier: string): Promise<PublicEven
   )
 }
 
-/** 今週末 (直近の土日) に開催されるイベント */
+/**
+ * 今週末 (直近の土日) に開催されるイベント。JSTの曜日で判定する。
+ * 日曜に見たときは「今日まで」を週末として扱う (来週に飛ばさない)。
+ */
 export async function getWeekendEvents(limit = 12, now = new Date()): Promise<PublicEvent[]> {
-  const day = now.getDay()
-  const daysUntilSaturday = day === 6 ? 0 : (6 - day + 7) % 7
-  const saturday = new Date(now)
-  saturday.setDate(saturday.getDate() + daysUntilSaturday)
-  saturday.setHours(0, 0, 0, 0)
-  const sundayEnd = new Date(saturday)
-  sundayEnd.setDate(sundayEnd.getDate() + 1)
-  sundayEnd.setHours(23, 59, 59, 999)
+  const parts = jstParts(now)
+  const daysUntilSaturday = parts.weekday === 6 ? 0 : parts.weekday === 0 ? -1 : 6 - parts.weekday
+  const saturday = jstMidnight(parts.year, parts.month, parts.day + daysUntilSaturday)
+  const sundayEnd = new Date(jstMidnight(parts.year, parts.month, parts.day + daysUntilSaturday + 2).getTime() - 1)
 
-  const events = await getPublishedEvents({ startsBefore: sundayEnd, limit: 80 })
-  // 週末に「かかっている」= 開始が日曜終わり以前 かつ 終了が土曜開始以降
-  return events.filter((event) => new Date(event.end_at) >= saturday).slice(0, limit)
+  // 週末に「かかっている」= 開始が日曜終わり以前 かつ 終了が土曜開始以降。
+  // 終了側もDBの条件に入れないと、開催中の長期イベントが limit を食い潰し
+  // 今週末開始のイベントが1件も残らないことがある
+  return safe<PublicEvent[]>(
+    () =>
+      supabase
+        .from("events" as never)
+        .select(COLUMNS)
+        .eq("status", "published")
+        .lte("start_at", sundayEnd.toISOString())
+        .gte("end_at", saturday.toISOString())
+        .order("start_at")
+        .limit(limit)
+        .then((result) => ({ data: result.data as unknown as PublicEvent[], error: result.error })),
+    [],
+  )
 }
 
 export function eventHref(event: Pick<PublicEvent, "id" | "slug">): string {
