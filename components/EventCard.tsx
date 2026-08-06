@@ -1,4 +1,5 @@
 import Link from "next/link"
+import EventCover from "@/components/EventCover"
 import {
   eventCoverUrl,
   eventHref,
@@ -38,25 +39,15 @@ export default function EventCard({ event, compact = false }: { event: PublicEve
             className="size-full object-cover transition-transform duration-[250ms] ease-out group-hover:scale-[1.04]"
           />
         ) : (
-          // 写真が無いときは日付を大きく見せる
-          <div className="grid size-full place-items-center text-center">
-            <div>
-              <p className="font-display text-3xl font-black leading-none text-accent-strong">
-                {start.getMonth() + 1}<span className="text-lg">/</span>{start.getDate()}
-              </p>
-              <p className="mt-1 text-xs font-bold text-ink-soft">
-                {["日", "月", "火", "水", "木", "金", "土"][start.getDay()]}曜
-              </p>
-            </div>
-          </div>
+          <EventCover event={event} />
         )}
         {isOngoing && <span className="badge-photo is-positive absolute left-2 top-2">開催中</span>}
         {!isOngoing && event.is_free && <span className="badge-photo absolute left-2 top-2">入場無料</span>}
       </div>
 
       <p className="mt-2 text-xs font-black text-accent">
-        {/* 写真が無いカードは日付を大きく出しているので、同じ日付を繰り返さない */}
-        {!(cover === null && periodLabel === badgeDate) && periodLabel}
+        {/* カバーが日付を大きく出しているときだけ、同じ日付を繰り返さない */}
+        {!(cover === null && !event.highlight_value && periodLabel === badgeDate) && periodLabel}
         {event.event_category && (
           <span className="ml-1.5 font-bold text-ink-soft">{EVENT_CATEGORY_LABELS[event.event_category]}</span>
         )}

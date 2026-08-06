@@ -48,6 +48,8 @@ export interface PublicEvent {
   start_at: string
   end_at: string
   start_time_unknown: boolean
+  highlight_label: string | null
+  highlight_value: string | null
   event_category: EventCategory | null
   child_price: number | null
   adult_price: number | null
@@ -64,7 +66,7 @@ export interface PublicEvent {
 }
 
 const COLUMNS =
-  "id,slug,place_id,name,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,start_time_unknown,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
+  "id,slug,place_id,name,summary,description,venue_name,address,prefecture,city,latitude,longitude,start_at,end_at,start_time_unknown,highlight_label,highlight_value,event_category,child_price,adult_price,is_free,is_featured,reservation_required,official_url,application_url,organizer_name,access_note,rain_policy,cover_storage_path,cover_external_url"
 
 export function eventCoverUrl(event: Pick<PublicEvent, "cover_storage_path" | "cover_external_url">): string | null {
   if (event.cover_storage_path) return storagePublicUrl(event.cover_storage_path)

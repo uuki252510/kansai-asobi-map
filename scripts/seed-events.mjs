@@ -172,6 +172,9 @@ const rows = EVENTS.map((event) => ({
   start_time_unknown: true,
   place_id: event.placeId ?? null,
   access_note: event.access ?? null,
+  // 写真が無いイベントのカバーで主役にする数字。出典の表記のまま入れる
+  highlight_label: event.scale ? '打ち上げ数' : null,
+  highlight_value: event.scale ?? null,
   official_url: event.officialUrl ?? null,
   is_free: false,
   status: "published",
