@@ -211,10 +211,18 @@
 
 .heroImage,
 .cover,
-.closingImage,
-.articleImage {
+.closingImage {
   width: 100%;
   height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* 記事カードは通常フロー。height:100% を混ぜるとカード高さが
+   画像だけで確定し、下のテキストが次のセクションへはみ出す */
+.articleImage {
+  width: 100%;
+  height: auto;
   display: block;
   object-fit: cover;
 }
