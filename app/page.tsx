@@ -32,7 +32,7 @@ export default async function Home() {
     getPublishedArticles(6).catch(() => []),
     getWeekendEvents(12).catch(() => []),
   ])
-  const spots = uniquePlaces([...featured, ...all.filter((place) => place.image_url)]).slice(0, 36)
+  const spots = uniquePlaces([...featured, ...all.filter((place) => place.image_storage_path || place.image_url)]).slice(0, 36)
   const totalSpotCount = all.length
   const countsByPrefecture = Object.fromEntries(
     all.reduce((counts, place) => {
@@ -42,7 +42,7 @@ export default async function Home() {
   )
 
   // ---- ホームの横スクロール行を組み立てる ----
-  const withPhoto = all.filter((place) => place.image_url)
+  const withPhoto = all.filter((place) => place.image_storage_path || place.image_url)
   const ranking = await getRanking(withPhoto, { window: "month", limit: 12 })
   const rankedIds = new Set(ranking.map((entry) => entry.place.id))
   const season = currentSeason()

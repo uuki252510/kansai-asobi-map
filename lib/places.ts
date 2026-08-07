@@ -14,6 +14,21 @@ export interface PlaceFilters {
   search?: string
 }
 
+/**
+ * 写真の確実性ランク。Storage取り込み済み > 生きた外部URL > なし。
+ * ポータルとして写真が無い施設を前面に出さないための共通判定。
+ */
+export function placePhotoRank(place: Pick<Place, "image_storage_path" | "image_url">): number {
+  if (place.image_storage_path) return 2
+  if (place.image_url) return 1
+  return 0
+}
+
+/** 元の並びを保ちながら、写真なしを後ろへ送る安定ソート */
+export function sortPhotosFirst<T extends Pick<Place, "image_storage_path" | "image_url">>(list: T[]): T[] {
+  return [...list].sort((a, b) => placePhotoRank(b) - placePhotoRank(a))
+}
+
 export interface PlaceWithAvgRating extends Place {
   avg_rating: number | null
   review_count: number
@@ -138,7 +153,7 @@ export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAv
         filters,
       ).range(from, to),
     )
-    return rows.map(fromViewRow)
+    return sortPhotosFirst(rows.map(fromViewRow))
   } catch {
     const rows = await fetchAllRows<PlaceRecord>((from, to) =>
       applyPlaceFilters(
@@ -150,7 +165,7 @@ export async function getPlaces(filters: PlaceFilters = {}): Promise<PlaceWithAv
         filters,
       ).range(from, to),
     )
-    return rows.map((row) => withRating(row))
+    return sortPhotosFirst(rows.map((row) => withRating(row)))
   }
 }
 
@@ -270,7 +285,7 @@ export async function getRecommendedPlaces(): Promise<PlaceWithAvgRating[]> {
       .eq("is_published", true)
       .eq("prefecture", prefecture as Prefecture)
       .in("name", names)
-      .not("image_url", "is", null)
+      .or("image_storage_path.not.is.null,image_url.not.is.null")
 
     if (data?.length) {
       const sorted = [...data].sort((left, right) => {
@@ -287,7 +302,7 @@ export async function getRecommendedPlaces(): Promise<PlaceWithAvgRating[]> {
       .select("*, reviews(rating)")
       .eq("is_published", true)
       .eq("prefecture", prefecture as Prefecture)
-      .not("image_url", "is", null)
+      .or("image_storage_path.not.is.null,image_url.not.is.null")
       .eq("has_parking", true)
       .limit(1)
 
