@@ -192,7 +192,7 @@ function PlaceCard({
 
   return (
     <Link
-      href={"/spots/" + place.id}
+      href={"/places/" + place.id}
       className={[styles.placeCard, compact ? styles.placeCardCompact : ""].join(" ")}
     >
       <div className={styles.placeMedia}>
@@ -300,7 +300,9 @@ export default function EditorialHome({
       }
 
       const rotation = (index - moodIndex * 3 + spots.length) % Math.max(spots.length, 1)
-      return { place, score, rotation }
+      // 同スコア帯では実写真が確実にある施設を先に (地図の代替画像を顔にしない)
+      const photoRank = place.image_storage_path ? 2 : place.image_url ? 1 : 0
+      return { place, score, rotation, photoRank }
     })
 
     if (!scored.some((entry) => entry.score > 0)) {
@@ -309,31 +311,42 @@ export default function EditorialHome({
     }
 
     return scored
-      .sort((left, right) => right.score - left.score || left.rotation - right.rotation)
+      .sort((left, right) => right.score - left.score || right.photoRank - left.photoRank || left.rotation - right.rotation)
       .slice(0, 3)
       .map((entry) => entry.place)
   }, [selectedMood, selectedMoodConfig, spots])
+
+  // 選択中の気分に合う総数 (リードカードでデータとして見せる)
+  const moodMatchCount = useMemo(
+    () => spots.filter((place) => selectedMoodConfig.matches(place)).length,
+    [selectedMoodConfig, spots],
+  )
+
+  const durationPhotoRank = (place: PlaceWithAvgRating) =>
+    place.image_storage_path ? 2 : place.image_url ? 1 : 0
+  const preferDurationPhotos = (list: PlaceWithAvgRating[]) =>
+    [...list].sort((a, b) => durationPhotoRank(b) - durationPhotoRank(a))
 
   const durationGroups = [
     {
       label: "60–90 MIN",
       title: "近場でさくっと",
-      places: spots.filter((place) => (place.average_stay_minutes ?? 999) <= 90).slice(0, 3),
+      places: preferDurationPhotos(spots.filter((place) => (place.average_stay_minutes ?? 999) <= 90)).slice(0, 3),
     },
     {
       label: "HALF DAY",
       title: "半日でちょうど",
-      places: spots
-        .filter((place) => {
+      places: preferDurationPhotos(
+        spots.filter((place) => {
           const minutes = place.average_stay_minutes ?? 0
           return minutes > 90 && minutes <= 240
-        })
-        .slice(0, 3),
+        }),
+      ).slice(0, 3),
     },
     {
       label: "ONE DAY",
       title: "一日じっくり",
-      places: spots.filter((place) => (place.average_stay_minutes ?? 0) > 240).slice(0, 3),
+      places: preferDurationPhotos(spots.filter((place) => (place.average_stay_minutes ?? 0) > 240)).slice(0, 3),
     },
   ].map((group, index) => ({
     ...group,
@@ -576,6 +589,10 @@ export default function EditorialHome({
           <div className={styles.moodResults} role="tabpanel">
             <div className={styles.moodResultLead}>
               <p><span>SELECTED MOOD</span><strong>{selectedMoodConfig.label}</strong></p>
+              <p className={styles.moodCount}>
+                <b>{moodMatchCount.toLocaleString("ja-JP")}</b>
+                <span>件から、この3つ</span>
+              </p>
             </div>
             {moodPlaces.map((place) => (
               <PlaceCard key={place.id} place={place} compact />
@@ -664,10 +681,16 @@ export default function EditorialHome({
                 <ol>
                   {group.places.map((place, index) => (
                     <li key={place.id}>
-                      <Link href={"/spots/" + place.id}>
+                      <Link href={"/places/" + place.id}>
                         <span>0{groupIndex * 3 + index + 1}</span>
                         <PlaceImage place={place} alt="" className={styles.durationImage} />
-                        <p><strong>{place.name}</strong><small>{place.city}</small></p>
+                        <p>
+                          <strong>{place.name}</strong>
+                          <small>
+                            {place.city}
+                            {place.average_stay_minutes ? " ・ 約" + (place.average_stay_minutes >= 60 ? Math.round(place.average_stay_minutes / 60 * 10) / 10 + "時間" : place.average_stay_minutes + "分") : ""}
+                          </small>
+                        </p>
                         <ArrowRight aria-hidden />
                       </Link>
                     </li>

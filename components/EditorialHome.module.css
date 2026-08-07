@@ -1860,3 +1860,25 @@
 .mapMarker * {
   transition: none;
 }
+
+/* 気分リードカードの件数 (アイコンの代わりにデータを主役へ) */
+.moodCount {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.moodCount b {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.moodCount span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
