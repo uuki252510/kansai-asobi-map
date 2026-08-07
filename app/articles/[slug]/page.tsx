@@ -95,7 +95,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <Link href="/articles" className="hover:text-ink">記事・特集</Link>
       </nav>
 
-      <article className="mx-auto mt-4 max-w-3xl">
+      <div className="mx-auto mt-4 grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <article className="min-w-0 max-w-3xl">
         <p className="text-xs font-black text-accent-strong">{ARTICLE_TYPE_LABELS[article.article_type]}</p>
         <h1 className="mt-1.5 font-display text-2xl font-black leading-tight tracking-tight text-ink sm:text-4xl">
           {article.title}
@@ -121,9 +122,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </p>
         )}
 
-        {/* 目次: 長文でも迷子にならないように (見出し3つ以上のときだけ) */}
+        {/* 目次 (モバイル用): lg以上ではサイドバー側に出す */}
         {toc.length >= 3 && (
-          <nav aria-label="目次" className="mt-6 rounded-2xl border border-line bg-surface p-5">
+          <nav aria-label="目次" className="mt-6 rounded-2xl border border-line bg-surface p-5 lg:hidden">
             <p className="font-display text-sm font-black text-ink">目次</p>
             <ol className="mt-2 space-y-1.5 text-sm">
               {toc.map((entry, index) => (
@@ -151,6 +152,60 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         )}
       </article>
 
+      {/* サイドバー: スポット/関連記事は流れ、目次+PR枠は読了まで追従する。モバイルは本文の下 */}
+      <aside className="mt-10 min-w-0 lg:mt-0">
+        {places.length > 0 && (
+          <nav aria-label="この記事のスポット" className="hidden rounded-2xl border border-line bg-surface p-5 lg:block">
+            <p className="font-display text-sm font-black text-ink">この記事のスポット</p>
+            <ul className="mt-2 space-y-1.5 text-sm">
+              {places.slice(0, 6).map((place) => (
+                <li key={place.id}>
+                  <Link href={`/places/${place.id}`} className="text-ink-soft hover:text-accent-strong">
+                    {place.name}
+                    <span className="ml-1.5 text-xs text-ink-faint">{place.city}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        {related.length > 0 && (
+          <div className="mt-6 first:mt-0">
+            <ArticleList title="あわせて読みたい" articles={related.slice(0, 3)} variant="rows" />
+          </div>
+        )}
+
+        <div className="mt-6 first:mt-0 lg:sticky lg:top-24">
+          {toc.length >= 3 && (
+            <nav aria-label="目次 (サイドバー)" className="hidden rounded-2xl border border-line bg-surface p-5 lg:block">
+              <p className="font-display text-sm font-black text-ink">目次</p>
+              <ol className="mt-2 space-y-1.5 text-sm">
+                {toc.map((entry, index) => (
+                  <li key={entry.id} className={entry.level === 3 ? "pl-4" : undefined}>
+                    <a href={`#${entry.id}`} className="text-ink-soft hover:text-accent-strong">
+                      <span className="mr-2 font-bold tabular-nums text-ink-faint">{index + 1}</span>
+                      {entry.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
+
+          {/* PR予約枠: 掲載が入るまでは自社導線。広告掲出時も「PR」ラベルは外さない (ステマ規制) */}
+          <div className="mt-6 rounded-2xl border border-line bg-surface p-5 first:mt-0">
+            <p className="text-[10px] font-black tracking-[0.16em] text-ink-faint">PR｜広告掲載枠</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-ink">この枠に施設・イベントのPR掲載を予定しています。</p>
+            <p className="mt-1 text-xs leading-5 text-ink-soft">掲載のご相談は準備中です。それまでは編集部おすすめをどうぞ。</p>
+            <Link href="/spots" className="mt-3 inline-block text-sm font-bold text-accent-strong">
+              スポットをさがす →
+            </Link>
+          </div>
+        </div>
+      </aside>
+      </div>
+
       {listedOnly.length > 0 && (
         <section className="mt-12">
           <h2 className="font-display text-xl font-black text-ink">この記事で紹介したスポット</h2>
@@ -158,12 +213,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             {listedOnly.map((place) => place && <PlaceCard key={place.id} place={place} />)}
           </div>
         </section>
-      )}
-
-      {related.length > 0 && (
-        <div className="mt-12">
-          <ArticleList title="あわせて読みたい" articles={related} variant="grid" />
-        </div>
       )}
 
       <div className="mt-12 flex justify-center">
