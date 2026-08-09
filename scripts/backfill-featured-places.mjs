@@ -49,6 +49,8 @@ const FEATURED = [
   "神戸ハーバーランドumie",
   "VS PARK EXPOCITY",
   "VS.（ヴイエス）グラングリーン大阪",
+  "EXPOCITY（エキスポシティ）",
+  "りんくうプレミアム・アウトレット",
 ]
 
 const rows = []
