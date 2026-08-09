@@ -71,6 +71,11 @@ const MANUAL_GROUPS = [
   // 記事が参照しているのは「ゾーンB」側なので残し、表記だけ整える
   { name: "服部緑地 子供の楽園", keep: "5bda9cf2-98bd-469c-a3b9-6d48981d0913", drop: ["59efe56d-f654-4383-a59a-79d1fcd052a8"], rename: "服部緑地 子供の楽園" },
   { name: "梅小路公園", keep: "9f36043e-4e95-476f-883c-52ea4e2c60da", drop: ["bd2a3048-7904-4ef8-8189-a8f47c39c871"] },
+  // ホーム「使える時間から選ぶ」で同一施設が並んだ組 (2026-08 目視確認)
+  { name: "ニジゲンノモリ（淡路島）", keep: "5e09a017-37fa-4ca8-bbad-539cbc933474", drop: ["4f08ff84-7e82-4c57-96f7-1b0d2ca9fc2b"] },
+  { name: "六甲山アスレチックパーク GREENIA", keep: "598ab811-ae10-48d4-9d2a-b77be9a751e9", drop: ["36b78c37-30c5-4c2f-bd28-ac6bd78d0846"] },
+  { name: "奈良公園", keep: "6bd9dfbe-4d3f-40d8-ade8-0b21e52e631a", drop: ["00bc3c3b-1103-4ed5-b7e8-11a6e2f40fe4", "78de788f-19de-4d0c-8bdc-65811a5b1a51"] },
+  { name: "ネスタリゾート神戸", keep: "59b37f11-866f-4b62-9be3-efa590480816", drop: ["8dd89992-defa-44e2-bdf5-c48da9129b21"] },
 ]
 
 const autoGroups = JSON.parse(

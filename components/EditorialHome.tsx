@@ -234,6 +234,7 @@ export default function EditorialHome({
   rows = [],
   articles = [],
   weekendEvents = [],
+  stayPlaces = [],
 }: {
   spots: PlaceWithAvgRating[]
   totalSpotCount: number
@@ -245,6 +246,7 @@ export default function EditorialHome({
   rows?: HomeRow[]
   articles?: Article[]
   weekendEvents?: PublicEvent[]
+  stayPlaces?: PlaceWithAvgRating[]
 }) {
   const router = useRouter()
   const [locating, setLocating] = useState(false)
@@ -322,36 +324,43 @@ export default function EditorialHome({
     [selectedMoodConfig, spots],
   )
 
+  /* 滞在時間つき施設 (編集部目安のバックフィル済み) から人気順に3件ずつ。
+     滞在時間が不明な施設をここに混ぜると「USJが60-90分」のような嘘になる
+     ため、フォールバック埋めはしない */
   const durationPhotoRank = (place: PlaceWithAvgRating) =>
     place.image_storage_path ? 2 : place.image_url ? 1 : 0
-  const preferDurationPhotos = (list: PlaceWithAvgRating[]) =>
-    [...list].sort((a, b) => durationPhotoRank(b) - durationPhotoRank(a))
+  // レビューがまだ少ないので、人気順の代わりに 写真→編集部おすすめ→滞在時間 で並べる
+  const rankDurationPlaces = (list: PlaceWithAvgRating[]) =>
+    [...list].sort(
+      (a, b) =>
+        durationPhotoRank(b) - durationPhotoRank(a) ||
+        Number(b.is_featured ?? false) - Number(a.is_featured ?? false) ||
+        b.review_count - a.review_count ||
+        (b.average_stay_minutes ?? 0) - (a.average_stay_minutes ?? 0),
+    )
 
   const durationGroups = [
     {
-      label: "60–90 MIN",
+      label: "TO 2 HOURS",
       title: "近場でさくっと",
-      places: preferDurationPhotos(spots.filter((place) => (place.average_stay_minutes ?? 999) <= 90)).slice(0, 3),
+      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 999) <= 120)).slice(0, 4),
     },
     {
       label: "HALF DAY",
       title: "半日でちょうど",
-      places: preferDurationPhotos(
-        spots.filter((place) => {
+      places: rankDurationPlaces(
+        stayPlaces.filter((place) => {
           const minutes = place.average_stay_minutes ?? 0
-          return minutes > 90 && minutes <= 240
+          return minutes > 120 && minutes <= 240
         }),
-      ).slice(0, 3),
+      ).slice(0, 4),
     },
     {
       label: "ONE DAY",
       title: "一日じっくり",
-      places: preferDurationPhotos(spots.filter((place) => (place.average_stay_minutes ?? 0) > 240)).slice(0, 3),
+      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 0) > 240)).slice(0, 4),
     },
-  ].map((group, index) => ({
-    ...group,
-    places: group.places.length ? group.places : spots.slice(index * 3, index * 3 + 3),
-  }))
+  ].filter((group) => group.places.length >= 3)
 
   const nowParts = jstParts()
   const todayLabel =
@@ -663,6 +672,7 @@ export default function EditorialHome({
           </div>
         </section>
 
+        {durationGroups.length > 0 && (
         <section className={styles.section}>
           <SectionHeading
             number="07"
@@ -682,7 +692,7 @@ export default function EditorialHome({
                   {group.places.map((place, index) => (
                     <li key={place.id}>
                       <Link href={"/places/" + place.id}>
-                        <span>0{groupIndex * 3 + index + 1}</span>
+                        <span>{String(groupIndex * 4 + index + 1).padStart(2, "0")}</span>
                         <PlaceImage place={place} alt="" className={styles.durationImage} />
                         <p>
                           <strong>{place.name}</strong>
@@ -700,6 +710,7 @@ export default function EditorialHome({
             ))}
           </div>
         </section>
+        )}
 
         {articles.length > 1 ? (
           <section className={[styles.section, styles.articleSection].join(" ")}>

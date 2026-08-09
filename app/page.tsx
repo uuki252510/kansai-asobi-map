@@ -43,6 +43,8 @@ export default async function Home() {
 
   // ---- ホームの横スクロール行を組み立てる ----
   const withPhoto = all.filter((place) => place.image_storage_path || place.image_url)
+  // 「使える時間から選ぶ」用: 滞在時間の目安が入っている施設 (写真つき) だけ
+  const stayPlaces = withPhoto.filter((place) => place.average_stay_minutes !== null && place.average_stay_minutes !== undefined)
   const ranking = await getRanking(withPhoto, { window: "month", limit: 12 })
   const rankedIds = new Set(ranking.map((entry) => entry.place.id))
   const season = currentSeason()
@@ -106,6 +108,7 @@ export default async function Home() {
         rows={rows}
         articles={articles}
         weekendEvents={weekendEvents}
+        stayPlaces={stayPlaces}
       />
     </>
   )
