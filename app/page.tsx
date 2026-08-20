@@ -5,6 +5,7 @@ import EditorialHome from "@/components/EditorialHome"
 import { type HomeRow } from "@/components/HomeExperience"
 import { getPublishedArticles } from "@/lib/articles"
 import { getWeekendEvents } from "@/lib/events"
+import { getCategoryCounts } from "@/lib/facilities"
 import { getAllPlaces, getRecommendedPlaces, type PlaceWithAvgRating } from "@/lib/places"
 import { getRanking } from "@/lib/rankings"
 import { SEASON_LABELS, currentSeason, seasonalRows } from "@/lib/seasonal"
@@ -25,12 +26,13 @@ export const metadata: Metadata = {
 }
 
 export default async function Home() {
-  const [featured, all, weather, articles, weekendEvents] = await Promise.all([
+  const [featured, all, weather, articles, weekendEvents, categoryCounts] = await Promise.all([
     getRecommendedPlaces().catch(() => []),
     getAllPlaces().catch(() => []),
     getWeatherSnapshot().catch(() => null),
     getPublishedArticles(6).catch(() => []),
     getWeekendEvents(12).catch(() => []),
+    getCategoryCounts().catch(() => []),
   ])
   const spots = uniquePlaces([...featured, ...all.filter((place) => place.image_storage_path || place.image_url)]).slice(0, 36)
   const totalSpotCount = all.length
@@ -45,6 +47,15 @@ export default async function Home() {
   const withPhoto = all.filter((place) => place.image_storage_path || place.image_url)
   // 「使える時間から選ぶ」用: 滞在時間の目安が入っている施設 (写真つき) だけ
   const stayPlaces = withPhoto.filter((place) => place.average_stay_minutes !== null && place.average_stay_minutes !== undefined)
+
+  // 「ジャンルから探す」: 表に出す順序は編集部が固定し、件数はDB集計を使う
+  const GENRE_SLUGS = [
+    "park", "indoor-playground", "zoo", "aquarium", "amusement-park", "onsen",
+    "pool", "beach", "shopping", "factory-tour", "museum", "sightseeing",
+  ]
+  const genres = GENRE_SLUGS
+    .map((slug) => categoryCounts.find((category) => category.slug === slug))
+    .filter((category): category is NonNullable<typeof category> => Boolean(category && category.count > 0))
   const ranking = await getRanking(withPhoto, { window: "month", limit: 12 })
   const rankedIds = new Set(ranking.map((entry) => entry.place.id))
   const season = currentSeason()
@@ -109,6 +120,7 @@ export default async function Home() {
         articles={articles}
         weekendEvents={weekendEvents}
         stayPlaces={stayPlaces}
+        genres={genres}
       />
     </>
   )

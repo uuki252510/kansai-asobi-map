@@ -267,6 +267,38 @@ export async function getPlaceIdsForCategory(categoryId: string): Promise<string
   )
 }
 
+export interface CategoryCount {
+  slug: string
+  name: string
+  count: number
+}
+
+/** 公開施設が属するカテゴリごとの件数 (ホームのジャンル導線用) */
+export async function getCategoryCounts(): Promise<CategoryCount[]> {
+  type Row = { category: { slug: string; name: string; is_active: boolean } | null }
+  const counts = new Map<string, CategoryCount>()
+  for (let from = 0; ; from += 1000) {
+    const rows = await safeQuery<Row[]>(
+      () => supabase
+        .from("facility_categories" as never)
+        .select("category:categories(slug,name,is_active), places!inner(is_published)")
+        .eq("places.is_published", true)
+        .range(from, from + 999)
+        .then((result) => ({ data: (result.data ?? []) as unknown as Row[], error: result.error })),
+      [],
+    )
+    for (const row of rows) {
+      const category = row.category
+      if (!category?.is_active) continue
+      const entry = counts.get(category.slug) ?? { slug: category.slug, name: category.name, count: 0 }
+      entry.count += 1
+      counts.set(category.slug, entry)
+    }
+    if (rows.length < 1000) break
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count)
+}
+
 export async function getPlaceIdsForTag(tagId: string): Promise<string[]> {
   return safeQuery<string[]>(
     () => supabase

@@ -618,6 +618,57 @@
   width: 15px;
 }
 
+/* ジャンルから探す: areaList と同じ罫線の文法で、カテゴリを3列に並べる */
+.genreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid rgba(6, 59, 128, 0.28);
+  background: rgba(255, 253, 248, 0.42);
+}
+
+.genreGrid a {
+  min-height: 84px;
+  display: grid;
+  grid-template-columns: 30px 1fr auto 16px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  border-right: 1px solid rgba(6, 59, 128, 0.23);
+  border-bottom: 1px solid rgba(6, 59, 128, 0.23);
+  transition: none;
+}
+
+.genreGrid a:nth-child(3n) {
+  border-right: 0;
+}
+
+.genreGrid a:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.genreGrid a:hover {
+  color: white;
+  background: var(--blue);
+}
+
+.genreGrid span,
+.genreGrid small {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.genreGrid strong {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.genreGrid svg {
+  width: 14px;
+}
+
 .mapPanel {
   position: relative;
   min-height: 610px;
@@ -1313,6 +1364,36 @@
 }
 
 @media (max-width: 820px) {
+  /* モバイルは2列だと施設名が縦に折れるので1列で流す */
+  .genreGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .genreGrid a {
+    min-height: 58px;
+    padding: 10px 18px;
+    grid-template-columns: 26px 1fr auto 14px;
+    gap: 12px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(6, 59, 128, 0.23);
+  }
+
+  .genreGrid a:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .genreGrid a:nth-last-child(-n + 3) {
+    border-bottom: 1px solid rgba(6, 59, 128, 0.23);
+  }
+
+  .genreGrid a:last-child {
+    border-bottom: 0;
+  }
+
+  .genreGrid strong {
+    font-size: 17px;
+  }
+
   .hero {
     min-height: auto;
     display: flex;

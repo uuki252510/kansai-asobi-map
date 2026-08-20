@@ -235,6 +235,7 @@ export default function EditorialHome({
   articles = [],
   weekendEvents = [],
   stayPlaces = [],
+  genres = [],
 }: {
   spots: PlaceWithAvgRating[]
   totalSpotCount: number
@@ -247,6 +248,7 @@ export default function EditorialHome({
   articles?: Article[]
   weekendEvents?: PublicEvent[]
   stayPlaces?: PlaceWithAvgRating[]
+  genres?: { slug: string; name: string; count: number }[]
 }) {
   const router = useRouter()
   const [locating, setLocating] = useState(false)
@@ -568,9 +570,31 @@ export default function EditorialHome({
           </div>
         </section>
 
-        <section className={[styles.section, styles.moodSection].join(" ")}>
+        {genres.length > 0 && (
+        <section className={styles.section}>
           <SectionHeading
             number="04"
+            eyebrow="GENRE INDEX"
+            title="ジャンルから探す"
+            description="行きたい場所の種類から、まっすぐ絞り込む。"
+            href="/spots"
+          />
+          <div className={styles.genreGrid}>
+            {genres.map((genre, index) => (
+              <Link key={genre.slug} href={"/facilities/category/" + genre.slug}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{genre.name}</strong>
+                <small>{genre.count} SPOTS</small>
+                <ArrowRight aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </section>
+        )}
+
+        <section className={[styles.section, styles.moodSection].join(" ")}>
+          <SectionHeading
+            number="05"
             eyebrow="MOOD SELECTOR"
             title="いまの気分で選ぶ"
             description="予定より先に、気持ちを決める。"
@@ -611,7 +635,7 @@ export default function EditorialHome({
 
         <section className={[styles.section, styles.eventSection].join(" ")}>
           <SectionHeading
-            number="05"
+            number="06"
             eyebrow="THIS WEEKEND"
             title="今週末のイベント"
             description="土曜と日曜、関西で起きていること。"
@@ -651,7 +675,7 @@ export default function EditorialHome({
         <section className={styles.rainSection}>
           <div className={styles.rainInner}>
             <SectionHeading
-              number="06"
+              number="07"
               eyebrow="RAINY DAY"
               title="雨の日こそ、出かけよう。"
               description={"屋内で楽しめる候補を " + rainyCount + " 件掲載しています。"}
@@ -675,7 +699,7 @@ export default function EditorialHome({
         {durationGroups.length > 0 && (
         <section className={styles.section}>
           <SectionHeading
-            number="07"
+            number="08"
             eyebrow="TIME TO SPEND"
             title="使える時間から選ぶ"
             description="距離のかわりに、滞在時間で週末を組み立てる。"
@@ -715,7 +739,7 @@ export default function EditorialHome({
         {articles.length > 1 ? (
           <section className={[styles.section, styles.articleSection].join(" ")}>
             <SectionHeading
-              number="08"
+              number="09"
               eyebrow="STORIES"
               title="おでかけの読みもの"
               description="場所の先にある、季節と街の話。"
