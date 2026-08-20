@@ -345,7 +345,7 @@ export default function EditorialHome({
     {
       label: "TO 2 HOURS",
       title: "近場でさくっと",
-      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 999) <= 120)).slice(0, 4),
+      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 999) <= 120)).slice(0, 5),
     },
     {
       label: "HALF DAY",
@@ -355,12 +355,12 @@ export default function EditorialHome({
           const minutes = place.average_stay_minutes ?? 0
           return minutes > 120 && minutes <= 240
         }),
-      ).slice(0, 4),
+      ).slice(0, 5),
     },
     {
       label: "ONE DAY",
       title: "一日じっくり",
-      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 0) > 240)).slice(0, 4),
+      places: rankDurationPlaces(stayPlaces.filter((place) => (place.average_stay_minutes ?? 0) > 240)).slice(0, 5),
     },
   ].filter((group) => group.places.length >= 3)
 
@@ -716,7 +716,7 @@ export default function EditorialHome({
                   {group.places.map((place, index) => (
                     <li key={place.id}>
                       <Link href={"/places/" + place.id}>
-                        <span>{String(groupIndex * 4 + index + 1).padStart(2, "0")}</span>
+                        <span>{String(groupIndex * 5 + index + 1).padStart(2, "0")}</span>
                         <PlaceImage place={place} alt="" className={styles.durationImage} />
                         <p>
                           <strong>{place.name}</strong>
