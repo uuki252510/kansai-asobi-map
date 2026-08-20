@@ -28,6 +28,7 @@ import CorrectionRequestForm from "@/components/CorrectionRequestForm"
 import ExternalLinksModule from "@/components/ExternalLinksModule"
 import FacilityInfoSections from "@/components/FacilityInfoSections"
 import NearbyFacilities from "@/components/NearbyFacilities"
+import SameGenreFacilities from "@/components/SameGenreFacilities"
 import PlaceDecisionBrief from "@/components/PlaceDecisionBrief"
 import { PlaceEnrichmentSection, PlaceEnrichmentSkeleton } from "@/components/PlaceEnrichmentSection"
 import PlaceImage from "@/components/PlaceImage"
@@ -228,6 +229,10 @@ export default async function PlaceDetailPage({ params }: Props) {
 
       <Suspense fallback={null}>
         <NearbyFacilities place={place} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <SameGenreFacilities place={place} />
       </Suspense>
 
       <div className="mt-10 border-t border-line pt-5">

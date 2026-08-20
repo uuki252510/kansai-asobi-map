@@ -267,6 +267,23 @@ export async function getPlaceIdsForCategory(categoryId: string): Promise<string
   )
 }
 
+/** 施設が属するカテゴリだけを軽量に引く (詳細ページの回遊ブロック用) */
+export async function getCategoriesForPlace(placeId: string): Promise<Category[]> {
+  return safeQuery<Category[]>(
+    () => supabase
+      .from("facility_categories" as never)
+      .select("category:categories(id,slug,name,description,icon,parent_id,sort_order,is_active,seo_title,seo_description)")
+      .eq("place_id", placeId)
+      .then((result) => ({
+        data: ((result.data ?? []) as Array<{ category: Category | null }>)
+          .map((row) => row.category)
+          .filter((category): category is Category => Boolean(category && category.is_active)),
+        error: result.error,
+      })),
+    [],
+  )
+}
+
 export interface CategoryCount {
   slug: string
   name: string
